@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useRentals } from '../contexts/RentalsContext';
@@ -9,9 +9,8 @@ import Footer from './Footer';
 import { Package, Clock, CheckCircle, XCircle, AlertCircle, ArrowLeft, MessageSquare, Download } from 'lucide-react';
 
 export default function OrdersPage() {
-  const { currentUser } = useAuth();
   const { theme } = useTheme();
-  const { userRentalRequests, receivedRentalRequests, updateRentalRequestStatus } = useRentals();
+  const { userRentalRequests, receivedRentalRequests, updateRentalStatus } = useRentals();
   const { listings } = useListings();
   const navigate = useNavigate();
 
@@ -41,7 +40,7 @@ export default function OrdersPage() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
-      await updateRentalRequestStatus(orderId, newStatus);
+      await updateRentalStatus(orderId, newStatus as any);
       alert(`Order status updated to ${newStatus}`);
     } catch (error) {
       alert(`Error updating status: ${error instanceof Error ? error.message : 'Unknown error'}`);

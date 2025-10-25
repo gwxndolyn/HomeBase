@@ -35,6 +35,9 @@ interface Listing {
   createdAt: Timestamp | Date;
   userId: string;
   isActive?: boolean; // For delisting/relisting
+  type?: 'product' | 'service'; // Product or service listing
+  stock?: number; // For product listings
+  shopId?: string; // Reference to the shop
 }
 
 interface ListingsContextType {

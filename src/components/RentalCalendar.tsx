@@ -30,7 +30,7 @@ interface TimeSlot {
   endTime: string;
 }
 
-export default function RentalCalendar({ viewMode, serviceId, onAvailabilityChange }: RentalCalendarProps) {
+export default function RentalCalendar({ viewMode, onAvailabilityChange }: RentalCalendarProps) {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const { userRentalRequests, receivedRentalRequests } = useRentals();

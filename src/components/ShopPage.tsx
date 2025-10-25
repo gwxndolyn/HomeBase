@@ -540,13 +540,12 @@ export default function ShopPage() {
         ) : null}
       </div>
 
-      {showSuccessModal && (
-        <SuccessModal
-          title={successMessage.title}
-          message={successMessage.message}
-          onClose={() => setShowSuccessModal(false)}
-        />
-      )}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        title={successMessage.title}
+        message={successMessage.message}
+        onClose={() => setShowSuccessModal(false)}
+      />
 
       <Footer />
     </div>

@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { FirebaseShop } from '../services/firebase';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import type { FirebaseShop } from '../services/firebase';
 import { shopsService } from '../services/firebase';
 import { useAuth } from './AuthContext';
 
