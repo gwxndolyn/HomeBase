@@ -100,7 +100,7 @@ const LiquidGlassNav: React.FC = () => {
                 <span className="text-sm font-medium">List Item</span>
               </button>
               <button
-                onClick={() => handleNavigation('/my-rentals')}
+                onClick={() => handleNavigation('/orders')}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-xl transition-all ${
                 theme === 'dark'
                   ? 'text-white/80 hover:text-white hover:bg-white/10'
@@ -313,7 +313,7 @@ const LiquidGlassNav: React.FC = () => {
               <span className="font-medium">List Item</span>
             </button>
             <button
-              onClick={() => handleNavigation('/my-rentals')}
+              onClick={() => handleNavigation('/orders')}
               className={`flex items-center space-x-3 w-full px-6 py-4 transition-colors ${
                 theme === 'dark'
                   ? 'text-white/80 hover:text-white hover:bg-white/10'

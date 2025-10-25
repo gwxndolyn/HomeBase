@@ -74,7 +74,8 @@ export default function ListingDetailPage() {
   const [rentRequest, setRentRequest] = useState({
     startDateTime: '',
     endDateTime: '',
-    message: ''
+    message: '',
+    quantity: 1  // For products
   });
   const [listingData, setListingData] = useState<any>(null);
   const [unavailableDates, setUnavailableDates] = useState<Array<{ start: string; end: string; status: string }>>([]);
