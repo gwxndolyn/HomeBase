@@ -9,7 +9,9 @@ import { Calendar as CalendarIcon, X, Clock, MapPin, DollarSign, User, Package }
 import { useNavigate } from 'react-router-dom';
 
 interface RentalCalendarProps {
-  viewMode: 'customer' | 'owner';
+  viewMode: 'customer' | 'owner' | 'availability';
+  serviceId?: string;
+  onAvailabilityChange?: (availability: Array<{ date: string; startTime: string; endTime: string }>) => void;
 }
 
 const CALENDAR_COLORS = {
@@ -18,28 +20,60 @@ const CALENDAR_COLORS = {
   completed: '#6b7280',
   declined: '#ef4444',
   cancelled: '#9ca3af',
+  available: '#8b5cf6',
+  booked: '#3b82f6',
 };
 
-export default function RentalCalendar({ viewMode }: RentalCalendarProps) {
+interface TimeSlot {
+  date: string;
+  startTime: string;
+  endTime: string;
+}
+
+export default function RentalCalendar({ viewMode, serviceId, onAvailabilityChange }: RentalCalendarProps) {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const { userRentalRequests, receivedRentalRequests } = useRentals();
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [showEventModal, setShowEventModal] = useState(false);
 
+  // Availability management state
+  const [availabilitySlots, setAvailabilitySlots] = useState<TimeSlot[]>([]);
+  const [showSlotModal, setShowSlotModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [slotStartTime, setSlotStartTime] = useState<string>('09:00');
+  const [slotEndTime, setSlotEndTime] = useState<string>('17:00');
+
   // Convert rental requests to calendar events
   const events = useMemo(() => {
+    // For availability mode, show available and booked slots
+    if (viewMode === 'availability') {
+      return availabilitySlots.map((slot, idx) => ({
+        id: `slot-${idx}`,
+        title: 'Available',
+        start: new Date(`${slot.date}T${slot.startTime}`),
+        end: new Date(`${slot.date}T${slot.endTime}`),
+        backgroundColor: CALENDAR_COLORS.available,
+        borderColor: CALENDAR_COLORS.available,
+        extendedProps: {
+          ...slot,
+          displayTitle: `⏰ Available: ${slot.startTime} - ${slot.endTime}`,
+          isAvailability: true,
+        }
+      }));
+    }
+
     const rentals = viewMode === 'customer' ? userRentalRequests : receivedRentalRequests;
-    
+
     // Filter out cancelled and declined bookings
     const activeRentals = rentals.filter(
       rental => rental.status !== 'cancelled' && rental.status !== 'declined'
     );
-    
+
     return activeRentals.map((rental) => {
       const startDateTime = new Date(`${rental.startDate}T${rental.startTime}`);
       const endDateTime = new Date(`${rental.endDate}T${rental.endTime}`);
-      
+
       return {
         id: rental.id,
         title: rental.toolName,
@@ -49,17 +83,70 @@ export default function RentalCalendar({ viewMode }: RentalCalendarProps) {
         borderColor: CALENDAR_COLORS[rental.status as keyof typeof CALENDAR_COLORS] || '#6b7280',
         extendedProps: {
           ...rental,
-          displayTitle: viewMode === 'customer' 
+          displayTitle: viewMode === 'customer'
             ? `🛠️ ${rental.toolName}`
             : `🛠️ ${rental.toolName}`,
         }
       };
     });
-  }, [userRentalRequests, receivedRentalRequests, viewMode]);
+  }, [userRentalRequests, receivedRentalRequests, viewMode, availabilitySlots]);
 
   const handleEventClick = (info: any) => {
-    setSelectedEvent(info.event);
-    setShowEventModal(true);
+    if (viewMode === 'availability' && info.event.extendedProps.isAvailability) {
+      setSelectedEvent(info.event);
+      setShowEventModal(true);
+    } else if (viewMode !== 'availability') {
+      setSelectedEvent(info.event);
+      setShowEventModal(true);
+    }
+  };
+
+  const handleDateClick = (info: any) => {
+    if (viewMode === 'availability') {
+      const dateStr = info.dateStr;
+      setSelectedDate(dateStr);
+      setShowSlotModal(true);
+    }
+  };
+
+  const addTimeSlot = () => {
+    if (!selectedDate || !slotStartTime || !slotEndTime) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    if (slotStartTime >= slotEndTime) {
+      alert('End time must be after start time');
+      return;
+    }
+
+    const newSlot: TimeSlot = {
+      date: selectedDate,
+      startTime: slotStartTime,
+      endTime: slotEndTime,
+    };
+
+    const updatedSlots = [...availabilitySlots, newSlot];
+    setAvailabilitySlots(updatedSlots);
+
+    if (onAvailabilityChange) {
+      onAvailabilityChange(updatedSlots);
+    }
+
+    // Reset form
+    setShowSlotModal(false);
+    setSelectedDate('');
+    setSlotStartTime('09:00');
+    setSlotEndTime('17:00');
+  };
+
+  const removeTimeSlot = (index: number) => {
+    const updatedSlots = availabilitySlots.filter((_, i) => i !== index);
+    setAvailabilitySlots(updatedSlots);
+
+    if (onAvailabilityChange) {
+      onAvailabilityChange(updatedSlots);
+    }
   };
 
   const formatDateTime = (date: string, time: string) => {
@@ -105,10 +192,12 @@ export default function RentalCalendar({ viewMode }: RentalCalendarProps) {
             </div>
             <div>
               <h3 className="text-xl font-bold">
-                {viewMode === 'customer' ? 'My Rental Calendar' : 'Owner Rental Calendar'}
+                {viewMode === 'customer' ? 'My Rental Calendar' : viewMode === 'availability' ? 'Service Availability' : 'Owner Rental Calendar'}
               </h3>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                {events.length} rental{events.length !== 1 ? 's' : ''} scheduled
+                {viewMode === 'availability'
+                  ? `${availabilitySlots.length} time slot${availabilitySlots.length !== 1 ? 's' : ''} available`
+                  : `${events.length} rental${events.length !== 1 ? 's' : ''} scheduled`}
               </p>
             </div>
           </div>
@@ -116,18 +205,29 @@ export default function RentalCalendar({ viewMode }: RentalCalendarProps) {
 
         {/* Legend */}
         <div className="mt-6 flex flex-wrap gap-3">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: CALENDAR_COLORS.pending }}></div>
-            <span className="text-sm">Pending</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: CALENDAR_COLORS.approved }}></div>
-            <span className="text-sm">Approved</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: CALENDAR_COLORS.completed }}></div>
-            <span className="text-sm">Completed</span>
-          </div>
+          {viewMode === 'availability' ? (
+            <>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded" style={{ backgroundColor: CALENDAR_COLORS.available }}></div>
+                <span className="text-sm">Available</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded" style={{ backgroundColor: CALENDAR_COLORS.pending }}></div>
+                <span className="text-sm">Pending</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded" style={{ backgroundColor: CALENDAR_COLORS.approved }}></div>
+                <span className="text-sm">Approved</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded" style={{ backgroundColor: CALENDAR_COLORS.completed }}></div>
+                <span className="text-sm">Completed</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -143,6 +243,7 @@ export default function RentalCalendar({ viewMode }: RentalCalendarProps) {
           }}
           events={events}
           eventClick={handleEventClick}
+          dateClick={viewMode === 'availability' ? handleDateClick : undefined}
           height="auto"
           eventTimeFormat={{
             hour: '2-digit',
@@ -172,7 +273,9 @@ export default function RentalCalendar({ viewMode }: RentalCalendarProps) {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className={`rounded-2xl p-6 max-w-2xl w-full shadow-2xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">{selectedEvent.extendedProps.toolName}</h3>
+              <h3 className="text-2xl font-bold">
+                {selectedEvent.extendedProps.isAvailability ? '⏰ Available Time Slot' : selectedEvent.extendedProps.toolName}
+              </h3>
               <button
                 onClick={() => setShowEventModal(false)}
                 className={`p-2 rounded-lg transition-colors ${
@@ -184,80 +287,105 @@ export default function RentalCalendar({ viewMode }: RentalCalendarProps) {
             </div>
 
             <div className="space-y-4 mb-6">
-              {/* Status Badge */}
-              <div>
-                <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold border ${getStatusBadgeColor(selectedEvent.extendedProps.status)}`}>
-                  {selectedEvent.extendedProps.status.toUpperCase()}
-                </span>
-              </div>
-
-              {/* Rental Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-start space-x-3">
-                  <Clock className="w-5 h-5 mt-0.5 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Start</p>
-                    <p className="font-semibold">{formatDateTime(selectedEvent.extendedProps.startDate, selectedEvent.extendedProps.startTime)}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <Clock className="w-5 h-5 mt-0.5 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">End</p>
-                    <p className="font-semibold">{formatDateTime(selectedEvent.extendedProps.endDate, selectedEvent.extendedProps.endTime)}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <User className="w-5 h-5 mt-0.5 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">{viewMode === 'customer' ? 'Owner' : 'Renter'}</p>
-                    <p className="font-semibold">{viewMode === 'customer' ? selectedEvent.extendedProps.ownerName : selectedEvent.extendedProps.renterName}</p>
-                    <p className="text-sm text-gray-400">{viewMode === 'customer' ? selectedEvent.extendedProps.ownerEmail : selectedEvent.extendedProps.renterEmail}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <DollarSign className="w-5 h-5 mt-0.5 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Total Cost</p>
-                    <p className="font-semibold text-purple-500 text-xl">${selectedEvent.extendedProps.totalCost}</p>
-                  </div>
-                </div>
-
-                {selectedEvent.extendedProps.location && (
-                  <div className="flex items-start space-x-3 md:col-span-2">
-                    <MapPin className="w-5 h-5 mt-0.5 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-400">Location</p>
-                      <p className="font-semibold">{selectedEvent.extendedProps.location}</p>
+              {selectedEvent.extendedProps.isAvailability ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-start space-x-3">
+                      <Clock className="w-5 h-5 mt-0.5 text-purple-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-400">Date</p>
+                        <p className="font-semibold">{selectedEvent.extendedProps.date}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <Clock className="w-5 h-5 mt-0.5 text-purple-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-400">Time</p>
+                        <p className="font-semibold">{selectedEvent.extendedProps.startTime} - {selectedEvent.extendedProps.endTime}</p>
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
+                </>
+              ) : (
+                <>
+                  {/* Status Badge */}
+                  <div>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold border ${getStatusBadgeColor(selectedEvent.extendedProps.status)}`}>
+                      {selectedEvent.extendedProps.status.toUpperCase()}
+                    </span>
+                  </div>
 
-              {/* Message */}
-              {selectedEvent.extendedProps.message && (
-                <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
-                  <p className="text-sm font-medium text-gray-400 mb-1">Message</p>
-                  <p className="text-sm">{selectedEvent.extendedProps.message}</p>
-                </div>
+                  {/* Rental Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-start space-x-3">
+                      <Clock className="w-5 h-5 mt-0.5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-400">Start</p>
+                        <p className="font-semibold">{formatDateTime(selectedEvent.extendedProps.startDate, selectedEvent.extendedProps.startTime)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <Clock className="w-5 h-5 mt-0.5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-400">End</p>
+                        <p className="font-semibold">{formatDateTime(selectedEvent.extendedProps.endDate, selectedEvent.extendedProps.endTime)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <User className="w-5 h-5 mt-0.5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-400">{viewMode === 'customer' ? 'Owner' : 'Renter'}</p>
+                        <p className="font-semibold">{viewMode === 'customer' ? selectedEvent.extendedProps.ownerName : selectedEvent.extendedProps.renterName}</p>
+                        <p className="text-sm text-gray-400">{viewMode === 'customer' ? selectedEvent.extendedProps.ownerEmail : selectedEvent.extendedProps.renterEmail}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <DollarSign className="w-5 h-5 mt-0.5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-400">Total Cost</p>
+                        <p className="font-semibold text-purple-500 text-xl">${selectedEvent.extendedProps.totalCost}</p>
+                      </div>
+                    </div>
+
+                    {selectedEvent.extendedProps.location && (
+                      <div className="flex items-start space-x-3 md:col-span-2">
+                        <MapPin className="w-5 h-5 mt-0.5 text-gray-400" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-400">Location</p>
+                          <p className="font-semibold">{selectedEvent.extendedProps.location}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Message */}
+                  {selectedEvent.extendedProps.message && (
+                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+                      <p className="text-sm font-medium text-gray-400 mb-1">Message</p>
+                      <p className="text-sm">{selectedEvent.extendedProps.message}</p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => {
-                  navigate(`/listing/${selectedEvent.extendedProps.toolId}`);
-                  setShowEventModal(false);
-                }}
-                className="flex-1 py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center space-x-2"
-              >
-                <Package className="w-4 h-4" />
-                <span>View Listing</span>
-              </button>
+              {!selectedEvent.extendedProps.isAvailability && (
+                <button
+                  onClick={() => {
+                    navigate(`/listing/${selectedEvent.extendedProps.toolId}`);
+                    setShowEventModal(false);
+                  }}
+                  className="flex-1 py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Package className="w-4 h-4" />
+                  <span>View Listing</span>
+                </button>
+              )}
 
               <button
                 onClick={() => setShowEventModal(false)}
@@ -270,6 +398,123 @@ export default function RentalCalendar({ viewMode }: RentalCalendarProps) {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Time Slot Modal - Availability Mode */}
+      {showSlotModal && viewMode === 'availability' && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className={`rounded-2xl p-6 max-w-md w-full shadow-2xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold">Add Time Slot</h3>
+              <button
+                onClick={() => setShowSlotModal(false)}
+                className={`p-2 rounded-lg transition-colors ${
+                  theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                }`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Date</label>
+                <input
+                  type="text"
+                  value={selectedDate}
+                  disabled
+                  className={`w-full px-4 py-2 rounded-lg border opacity-50 ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600'
+                      : 'bg-gray-100 border-gray-300'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Start Time</label>
+                <input
+                  type="time"
+                  value={slotStartTime}
+                  onChange={(e) => setSlotStartTime(e.target.value)}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600'
+                      : 'bg-white border-gray-300'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">End Time</label>
+                <input
+                  type="time"
+                  value={slotEndTime}
+                  onChange={(e) => setSlotEndTime(e.target.value)}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600'
+                      : 'bg-white border-gray-300'
+                  }`}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={addTimeSlot}
+                className="flex-1 py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium transition-colors"
+              >
+                Add Slot
+              </button>
+              <button
+                onClick={() => setShowSlotModal(false)}
+                className={`flex-1 py-3 px-4 rounded-xl font-medium transition-colors ${
+                  theme === 'dark'
+                    ? 'bg-gray-700 hover:bg-gray-600'
+                    : 'bg-gray-200 hover:bg-gray-300'
+                }`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Availability Slots List - Availability Mode */}
+      {viewMode === 'availability' && availabilitySlots.length > 0 && (
+        <div className={`rounded-2xl p-6 ${theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'} border-0 shadow-sm`}>
+          <h3 className="text-lg font-bold mb-4">Scheduled Availability</h3>
+          <div className="space-y-3">
+            {availabilitySlots.map((slot, idx) => (
+              <div
+                key={idx}
+                className={`flex items-center justify-between p-4 rounded-lg border ${
+                  theme === 'dark'
+                    ? 'bg-gray-700/50 border-gray-600'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-purple-500" />
+                  <div>
+                    <p className="font-medium">{slot.date}</p>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {slot.startTime} - {slot.endTime}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => removeTimeSlot(idx)}
+                  className="p-2 rounded-lg text-red-500 hover:bg-red-500/20 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
