@@ -552,9 +552,117 @@ export class FavoritesService {
   }
 }
 
+// Shops Services
+export class ShopsService {
+  private collection = collection(db, 'shops');
+
+  async createShop(shop: Omit<FirebaseShop, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const docRef = await addDoc(this.collection, {
+      ...shop,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    return docRef.id;
+  }
+
+  async getShopByOwner(ownerEmail: string): Promise<FirebaseShop | null> {
+    try {
+      const q = query(this.collection, where('ownerEmail', '==', ownerEmail));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        return {
+          id: doc.id,
+          ...doc.data()
+        } as FirebaseShop;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting shop:', error);
+      return null;
+    }
+  }
+
+  async getShopById(shopId: string): Promise<FirebaseShop | null> {
+    try {
+      const docRef = doc(db, 'shops', shopId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        return {
+          id: docSnap.id,
+          ...docSnap.data()
+        } as FirebaseShop;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting shop by ID:', error);
+      return null;
+    }
+  }
+
+  async updateShop(shopId: string, updates: Partial<FirebaseShop>): Promise<void> {
+    const docRef = doc(db, 'shops', shopId);
+    await updateDoc(docRef, {
+      ...updates,
+      updatedAt: serverTimestamp()
+    });
+  }
+
+  async deleteShop(shopId: string): Promise<void> {
+    const docRef = doc(db, 'shops', shopId);
+    await deleteDoc(docRef);
+  }
+
+  async getAllShops(): Promise<FirebaseShop[]> {
+    try {
+      const q = query(this.collection, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as FirebaseShop[];
+    } catch (error) {
+      console.error('Error getting all shops:', error);
+      return [];
+    }
+  }
+
+  async searchShops(searchTerm: string, category?: string): Promise<FirebaseShop[]> {
+    try {
+      let q = query(this.collection, orderBy('createdAt', 'desc'));
+
+      if (category) {
+        q = query(this.collection, where('category', '==', category), orderBy('createdAt', 'desc'));
+      }
+
+      const querySnapshot = await getDocs(q);
+      const allShops = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as FirebaseShop[];
+
+      // Client-side filtering for search term
+      if (searchTerm) {
+        return allShops.filter(shop =>
+          shop.shopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          shop.shopDescription.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      return allShops;
+    } catch (error) {
+      console.error('Error searching shops:', error);
+      return [];
+    }
+  }
+}
+
 // Export service instances
 export const listingsService = new ListingsService();
 export const rentalRequestsService = new RentalRequestsService();
 export const reviewsService = new ReviewsService();
 export const favoritesService = new FavoritesService();
+export const shopsService = new ShopsService();
 export const imageUploadService = new ImageUploadService();
