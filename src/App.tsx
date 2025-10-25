@@ -20,6 +20,7 @@ import ProfilePage from './components/ProfilePage'
 import UserProfilePage from './components/UserProfilePage'
 import UserSettingsPage from './components/UserSettingsPage'
 import ShopPage from './components/ShopPage'
+import ShopFrontPage from './components/ShopFrontPage'
 import OrdersPage from './components/OrdersPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import NotFoundPage from './components/NotFoundPage'
@@ -57,6 +58,7 @@ export default function App() {
                   <Route path="/profile/:email" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
                   <Route path="/settings" element={<ProtectedRoute><UserSettingsPage /></ProtectedRoute>} />
                   <Route path="/shop" element={<ProtectedRoute><ShopPage /></ProtectedRoute>} />
+                  <Route path="/shop-front/:shopId" element={<ProtectedRoute><ShopFrontPage /></ProtectedRoute>} />
                   <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
 
                   {/* 404 catch-all route */}

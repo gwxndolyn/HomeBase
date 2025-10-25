@@ -2,12 +2,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useListings } from '../contexts/ListingsContext';
 import { useRentals } from '../contexts/RentalsContext';
+import { useShop } from '../contexts/ShopContext';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import LiquidGlassNav from './LiquidGlassNav';
 import Footer from './Footer';
 import LegoPersonWithBubble from './LegoPersonWithBubble';
-import { Search, Plus, Heart, ShoppingBag, Star, TrendingUp, Users, Award, ChevronLeft, ChevronRight, Hammer, Leaf, Smartphone, ChefHat, Dumbbell, Camera, Music, Baby, Gamepad2, Palette, Briefcase, Wrench, Clock, CheckCircle, XCircle, AlertCircle, DollarSign, Inbox } from 'lucide-react';
+import { Search, Plus, Heart, ShoppingBag, Star, TrendingUp, Users, Award, ChevronLeft, ChevronRight, Hammer, Leaf, Smartphone, ChefHat, Dumbbell, Camera, Music, Baby, Gamepad2, Palette, Briefcase, Wrench, Clock, CheckCircle, XCircle, AlertCircle, DollarSign, Inbox, MapPin } from 'lucide-react';
 
 import toolLibrary from '../assets/tool_library.jpg';
 import rentImage from '../assets/rent.jpg';
@@ -35,6 +36,7 @@ export default function HomePage() {
   const { theme } = useTheme();
   const { listings, userListings } = useListings();
   const { getUserRentals, userRentalRequests, receivedRentalRequests } = useRentals();
+  const { shops } = useShop();
   const navigate = useNavigate();
 
   // Get user stats
@@ -770,6 +772,137 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+
+          {/* Featured Shops Section */}
+          {shops && shops.length > 0 && (
+            <div className="mb-16">
+              <div className="flex items-center justify-between mb-6 md:mb-8 px-2">
+                <h2 className="text-2xl md:text-3xl font-bold">Featured Shops</h2>
+                <button
+                  onClick={() => navigate('/browse?view=shops')}
+                  className="text-purple-600 hover:text-purple-700 font-medium text-sm"
+                >
+                  View All →
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {shops.slice(0, 6).map((shop) => (
+                  <div
+                    key={shop.id}
+                    onClick={() => navigate(`/shop-front/${shop.id}`)}
+                    className={`rounded-xl overflow-hidden cursor-pointer transform transition-all hover:scale-105 shadow-lg ${
+                      theme === 'dark'
+                        ? 'bg-gray-800/90 border border-purple-500/20'
+                        : 'bg-white/90 border border-purple-300/30'
+                    }`}
+                  >
+                    {/* Shop Header with Background */}
+                    <div className={`h-32 ${theme === 'dark' ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-gradient-to-r from-purple-400 to-blue-500'}`}></div>
+
+                    {/* Shop Content */}
+                    <div className="p-4 relative">
+                      {/* Shop Name and Category */}
+                      <h3 className="text-lg font-bold mb-1 truncate">{shop.shopName}</h3>
+                      <p className={`text-sm mb-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {shop.category}
+                      </p>
+
+                      {/* Rating and Location */}
+                      <div className="flex items-center gap-4 mb-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-semibold">{shop.rating || 4.8}</span>
+                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>
+                            ({shop.reviews || 0})
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Location */}
+                      {shop.location && (
+                        <div className={`text-xs flex items-center gap-1 mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">{shop.location}</span>
+                        </div>
+                      )}
+
+                      {/* Description */}
+                      {shop.shopDescription && (
+                        <p className={`text-xs mb-4 line-clamp-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {shop.shopDescription}
+                        </p>
+                      )}
+
+                      {/* Action Button */}
+                      <button className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                        theme === 'dark'
+                          ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30'
+                          : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                      }`}>
+                        Visit Shop
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Popular Shops Section - Sorted by Rating */}
+          {shops && shops.length > 0 && (
+            <div className="mb-16">
+              <div className="flex items-center justify-between mb-6 md:mb-8 px-2">
+                <h2 className="text-2xl md:text-3xl font-bold">Popular Shops</h2>
+                <button
+                  onClick={() => navigate('/browse?view=shops&sort=rating')}
+                  className="text-purple-600 hover:text-purple-700 font-medium text-sm"
+                >
+                  View All →
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[...shops]
+                  .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+                  .slice(0, 8)
+                  .map((shop) => (
+                    <div
+                      key={shop.id}
+                      onClick={() => navigate(`/shop-front/${shop.id}`)}
+                      className={`rounded-lg overflow-hidden cursor-pointer transform transition-all hover:scale-105 ${
+                        theme === 'dark'
+                          ? 'bg-gray-800/80 border border-gray-700/50'
+                          : 'bg-white/80 border border-gray-200/50'
+                      }`}
+                    >
+                      {/* Header */}
+                      <div className={`h-24 ${theme === 'dark' ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gradient-to-r from-indigo-400 to-purple-500'}`}></div>
+
+                      {/* Content */}
+                      <div className="p-3">
+                        <h4 className="font-bold text-sm mb-1 truncate">{shop.shopName}</h4>
+                        <div className="flex items-center gap-1 mb-2">
+                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          <span className="text-xs font-semibold">{shop.rating || 4.5}</span>
+                          <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                            ({shop.reviews || 0})
+                          </span>
+                        </div>
+                        <p className={`text-xs mb-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {shop.category}
+                        </p>
+                        <button className={`w-full py-1.5 text-xs rounded font-medium transition-colors ${
+                          theme === 'dark'
+                            ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30'
+                            : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                        }`}>
+                          Visit
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick Tips - LEGO Man with Speech Bubble */}
           <LegoPersonWithBubble />
