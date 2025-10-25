@@ -20,6 +20,7 @@
 - ✅ Review and rating system
 - ✅ Favorites/Bookmarking system
 - ✅ Orders and bookings management page
+- ✅ Service availability calendar management
 - ✅ Responsive design (mobile, tablet, desktop)
 - ✅ Dark/Light theme support
 
@@ -31,6 +32,8 @@
 - ✅ Order status tracking (pending → approved → completed)
 - ✅ Customer communication system
 - ✅ Email notifications for orders/bookings
+- ✅ Service availability time slot management
+- ✅ Calendar-based booking for services
 
 ### Categories (12 Home Business Types)
 1. Handmade Crafts & Artwork
@@ -263,6 +266,32 @@ cd server && npm start
 Frontend: http://localhost:5173
 Backend: http://localhost:3001
 
+## 🗓️ Calendar & Availability Features
+
+### RentalCalendar Component (Enhanced)
+- **View Modes**: customer, owner, availability
+- **Availability Mode Features**:
+  - Click on any date to add time slots
+  - Set start and end times for availability
+  - Visual representation with purple color coding
+  - Remove time slots with one click
+  - Real-time callback for availability updates
+- **Owner Mode Features**:
+  - View all approved and completed bookings
+  - Track booking status with color coding
+  - Click bookings to see full details
+- **Customer Mode Features**:
+  - View all your orders and bookings
+  - Track rental status
+  - Filter by status
+
+### ServiceAvailabilityTab Component (New)
+- Manages service availability for sellers
+- Service selection dropdown
+- Calendar integration for time slot management
+- Availability summary display
+- Dark/light theme support
+
 ## 📋 Routes & Pages
 
 ### Public Routes
@@ -289,19 +318,30 @@ Backend: http://localhost:3001
 ### Seller Workflow
 1. Sign up → Create Shop → Set shop details & hours
 2. List products/services with type, pricing, inventory
-3. Receive orders/booking requests
-4. Approve/decline requests
-5. Mark complete when done
-6. Receive reviews and ratings
+3. For services: Set availability time slots via calendar interface
+4. Receive orders/booking requests
+5. Approve/decline requests
+6. Mark complete when done
+7. Receive reviews and ratings
+
+### Service Availability Management
+1. Navigate to My Shop → Service Availability tab
+2. Select service from dropdown
+3. Click on any date in calendar to add time slot
+4. Set start and end times for availability
+5. Time slots appear on calendar in purple
+6. Remove slots as needed
+7. Customers can only book during available slots
 
 ### Buyer Workflow
 1. Sign up → Browse products/services
 2. Search by category, location, price
 3. View details and reviews
 4. Place order (products) or booking request (services)
-5. Track order status
-6. Receive notifications
-7. Leave review after completion
+5. For services: Book during provider's available slots
+6. Track order status
+7. Receive notifications
+8. Leave review after completion
 
 ## 📊 Admin & Analytics (Future)
 
