@@ -5,6 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useListings } from '../contexts/ListingsContext';
 import { useRentals } from '../contexts/RentalsContext';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { useShop } from '../contexts/ShopContext';
 import { loadGoogleMapsScript } from '../utils/googleMaps';
 import { emailService } from '../services/emailService';
 import LiquidGlassNav from './LiquidGlassNav';
@@ -27,6 +28,8 @@ export default function BrowsePage() {
   const { listings } = useListings();
   const { addRentalRequest } = useRentals();
   const { isFavorited, toggleFavorite } = useFavorites();
+  const { shops } = useShop();
+  const [browseMode, setBrowseMode] = useState<'products' | 'shops'>('products');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -1199,6 +1202,34 @@ export default function BrowsePage() {
               )}
             </div>
 
+            {/* Browse Mode Toggle */}
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setBrowseMode('products')}
+                className={`px-4 py-3 rounded-xl border-0 shadow-sm transition-all text-sm font-medium ${
+                  browseMode === 'products'
+                    ? 'bg-purple-900 text-white'
+                    : theme === 'dark'
+                    ? 'bg-gray-800/60 hover:bg-gray-800/80 text-white'
+                    : 'bg-white/80 hover:bg-white/90 text-gray-900 backdrop-blur-sm'
+                }`}
+              >
+                Products
+              </button>
+              <button
+                onClick={() => setBrowseMode('shops')}
+                className={`px-4 py-3 rounded-xl border-0 shadow-sm transition-all text-sm font-medium ${
+                  browseMode === 'shops'
+                    ? 'bg-purple-900 text-white'
+                    : theme === 'dark'
+                    ? 'bg-gray-800/60 hover:bg-gray-800/80 text-white'
+                    : 'bg-white/80 hover:bg-white/90 text-gray-900 backdrop-blur-sm'
+                }`}
+              >
+                Shops
+              </button>
+            </div>
+
             {/* View Toggle */}
             <div className="flex space-x-2">
               <button
@@ -1651,17 +1682,148 @@ export default function BrowsePage() {
               </div>
             )}
 
-            {/* Content based on view mode */}
-            {viewMode === 'map' ? (
-              /* Map View - Show map for all states */
-              <div className={`h-96 rounded-xl overflow-hidden ${
-                theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'
-              }`}>
-                <div ref={mapRef} className="w-full h-full" />
-              </div>
+            {/* Content based on browse mode and view */}
+            {browseMode === 'shops' ? (
+              // SHOP BROWSE MODE
+              viewMode === 'map' ? (
+                // Shop Map View
+                <div className={`h-96 rounded-xl overflow-hidden ${
+                  theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'
+                }`}>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                      Map view coming soon for shops
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                // Shop List View
+                <div className="space-y-4">
+                  {(searchTerm || searchSubmitted) ? (
+                    // Filtered shops
+                    shops?.filter((shop) =>
+                      shop.shopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      shop.category.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {shops?.filter((shop) =>
+                          shop.shopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          shop.category.toLowerCase().includes(searchTerm.toLowerCase())
+                        ).map((shop) => (
+                          <div
+                            key={shop.id}
+                            onClick={() => navigate(`/shop-front/${shop.id}`)}
+                            className={`rounded-xl overflow-hidden cursor-pointer transform transition-all hover:scale-105 shadow-lg ${
+                              theme === 'dark'
+                                ? 'bg-gray-800/60'
+                                : 'bg-white/80 backdrop-blur-sm'
+                            }`}
+                          >
+                            <div className={`h-32 ${theme === 'dark' ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-gradient-to-r from-purple-400 to-blue-500'}`}></div>
+                            <div className="p-4">
+                              <h3 className="text-lg font-bold mb-1">{shop.shopName}</h3>
+                              <p className={`text-sm mb-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {shop.category}
+                              </p>
+                              <div className="flex items-center gap-1 mb-4">
+                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                <span className="font-semibold">{shop.rating || 4.5}</span>
+                                <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>
+                                  ({shop.reviews || 0})
+                                </span>
+                              </div>
+                              {shop.location && (
+                                <p className={`text-xs mb-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  📍 {shop.location}
+                                </p>
+                              )}
+                              <button className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                                theme === 'dark'
+                                  ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30'
+                                  : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                              }`}>
+                                Visit Shop
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={`text-center py-12 rounded-xl ${
+                        theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'
+                      }`}>
+                        <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                          No shops found matching "{searchTerm}"
+                        </p>
+                      </div>
+                    )
+                  ) : (
+                    // Show all shops
+                    shops && shops.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {shops.map((shop) => (
+                          <div
+                            key={shop.id}
+                            onClick={() => navigate(`/shop-front/${shop.id}`)}
+                            className={`rounded-xl overflow-hidden cursor-pointer transform transition-all hover:scale-105 shadow-lg ${
+                              theme === 'dark'
+                                ? 'bg-gray-800/60'
+                                : 'bg-white/80 backdrop-blur-sm'
+                            }`}
+                          >
+                            <div className={`h-32 ${theme === 'dark' ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-gradient-to-r from-purple-400 to-blue-500'}`}></div>
+                            <div className="p-4">
+                              <h3 className="text-lg font-bold mb-1">{shop.shopName}</h3>
+                              <p className={`text-sm mb-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {shop.category}
+                              </p>
+                              <div className="flex items-center gap-1 mb-4">
+                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                <span className="font-semibold">{shop.rating || 4.5}</span>
+                                <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>
+                                  ({shop.reviews || 0})
+                                </span>
+                              </div>
+                              {shop.location && (
+                                <p className={`text-xs mb-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  📍 {shop.location}
+                                </p>
+                              )}
+                              <button className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                                theme === 'dark'
+                                  ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30'
+                                  : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                              }`}>
+                                Visit Shop
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={`text-center py-12 rounded-xl ${
+                        theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'
+                      }`}>
+                        <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                          No shops available yet
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
+              )
             ) : (
-              /* List View - Show tools only when searched/filtered */
-              (searchSubmitted || selectedCategory !== 'All') && (
+              // PRODUCT BROWSE MODE
+              viewMode === 'map' ? (
+                /* Map View - Show map for all states */
+                <div className={`h-96 rounded-xl overflow-hidden ${
+                  theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'
+                }`}>
+                  <div ref={mapRef} className="w-full h-full" />
+                </div>
+              ) : (
+                /* List View - Show tools only when searched/filtered */
+                (searchSubmitted || selectedCategory !== 'All') && (
                 filteredTools.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredTools.map((tool) => (
@@ -1765,6 +1927,7 @@ export default function BrowsePage() {
                   </div>
                 )
               )
+            )}
             )}
           </div>
         )}
