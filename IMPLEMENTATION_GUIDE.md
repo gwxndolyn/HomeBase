@@ -2,12 +2,14 @@
 
 ## 🎯 Project Overview
 
-**HomeBase** is a modern home business platform built with React, TypeScript, and Firebase that enables home-based entrepreneurs to:
-- Create and manage their own digital shops
-- List products and services
+**HomeBase** is a modern shop-centric home business platform built with React, TypeScript, and Firebase that enables home-based entrepreneurs to:
+- Create and manage their own digital shops with full storefronts
+- List products and services within shops
 - Manage orders and service bookings
 - Build a customer community with reviews and ratings
 - Engage in real-time messaging with customers
+- Showcase shops as primary entities with featured and popular listings
+- Allow customers to browse shops directly and explore all offerings
 
 ## ✅ Completed Features
 
@@ -292,6 +294,55 @@ Backend: http://localhost:3001
 - Availability summary display
 - Dark/light theme support
 
+## 🏪 Shop-Centric Architecture
+
+### Featured Shops (Homepage)
+- Top 6 shops displayed with ratings and descriptions
+- Links to individual shop storefronts
+- Shop category and location information
+- "View All" navigation to browse all shops
+
+### Popular Shops (Homepage)
+- Shops sorted by rating (top 8)
+- Quick access to highest-rated businesses
+- Shop metrics at a glance
+- Direct navigation to shop pages
+
+### Shop Browsing (BrowsePage)
+- Toggle between "Products" and "Shops" modes
+- Search shops by name or category
+- Filter shops by business type
+- View all available shops in list view
+- Shop cards show:
+  - Shop name and category
+  - Rating and review count
+  - Location information
+  - Quick "Visit Shop" button
+
+### Shop Storefronts (ShopFrontPage)
+- Comprehensive shop display with:
+  - Shop header with banner
+  - Shop name, description, ratings
+  - Operating hours (7-day schedule)
+  - Contact information (phone, website, social)
+  - Product/Service tabs
+- Product showcase:
+  - All shop products with details
+  - Price, stock, and ratings
+  - "View Details" navigation
+- Service showcase:
+  - All shop services available
+  - Pricing and booking options
+  - "Book Now" functionality
+- Instruction tab:
+  - How to order/book guidance
+  - Contact information
+  - Message shop button
+- Reservations tab:
+  - Service availability
+  - Quick booking shortcuts
+  - Service provider information
+
 ## 📋 Routes & Pages
 
 ### Public Routes
@@ -301,8 +352,9 @@ Backend: http://localhost:3001
 ### Protected Routes
 | Route | Component | Purpose |
 |-------|-----------|---------|
-| `/home` | HomePage | Dashboard & statistics |
-| `/browse` | BrowsePage | Browse products/services |
+| `/home` | HomePage | Dashboard with featured/popular shops |
+| `/browse` | BrowsePage | Browse products/shops with toggle |
+| `/shop-front/:shopId` | ShopFrontPage | Shop storefront with all products |
 | `/list-item` | ListItemPage | Create/edit listings |
 | `/listing/:id` | ListingDetailPage | Product/service details |
 | `/shop` | ShopPage | Manage your shop |
