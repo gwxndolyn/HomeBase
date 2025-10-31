@@ -1,8 +1,27 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { FirebaseShop } from '../services/firebase';
-import { shopsService } from '../services/firebase';
+import { localStorageService } from '../services/localStorageService';
 import { useAuth } from './AuthContext';
+
+export interface FirebaseShop {
+  id: string;
+  ownerId: string;
+  ownerEmail: string;
+  ownerName: string;
+  shopName: string;
+  shopDescription: string;
+  location: string;
+  coordinates: { lat: number; lng: number };
+  category: string;
+  phone?: string;
+  website?: string;
+  instagram?: string;
+  operatingHours: { [key: string]: { open: string; close: string } };
+  rating: number;
+  reviews: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 interface ShopContextType {
   currentShop: FirebaseShop | null;
@@ -18,6 +37,14 @@ interface ShopContextType {
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
+export function useShop() {
+  const context = useContext(ShopContext);
+  if (!context) {
+    throw new Error('useShop must be used within ShopProvider');
+  }
+  return context;
+}
+
 export function ShopProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useAuth();
   const [currentShop, setCurrentShop] = useState<FirebaseShop | null>(null);
@@ -25,7 +52,14 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load user's shop on mount
+  // Load all shops on mount
+  useEffect(() => {
+    localStorageService.initialize();
+    const allShops = localStorageService.getShops();
+    setShops(allShops);
+  }, []);
+
+  // Load user's shop when currentUser changes
   useEffect(() => {
     if (currentUser) {
       loadUserShop();
@@ -38,8 +72,10 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const shop = await shopsService.getShopByOwner(currentUser.email || '');
-      setCurrentShop(shop);
+      const userShops = localStorageService.getShopsByOwnerId(currentUser.id);
+      if (userShops.length > 0) {
+        setCurrentShop(userShops[0]);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load shop';
       setError(errorMessage);
@@ -53,19 +89,20 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const shopId = await shopsService.createShop(shop);
-
-      // Reload the current shop
-      if (currentUser) {
-        const updatedShop = await shopsService.getShopByOwner(currentUser.email || '');
-        setCurrentShop(updatedShop);
-      }
-
+      const shopId = localStorageService.generateId();
+      const newShop: FirebaseShop = {
+        ...shop,
+        id: shopId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      localStorageService.saveShop(newShop);
+      setCurrentShop(newShop);
+      setShops([newShop, ...shops]);
       return shopId;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create shop';
       setError(errorMessage);
-      console.error('Error creating shop:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -76,16 +113,16 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      await shopsService.updateShop(shopId, updates);
+      const shop = localStorageService.getShopById(shopId);
+      if (!shop) throw new Error('Shop not found');
 
-      // Update local state
-      setCurrentShop(prev =>
-        prev ? { ...prev, ...updates } : null
-      );
+      const updatedShop = { ...shop, ...updates, updatedAt: new Date() };
+      localStorageService.saveShop(updatedShop);
+      setCurrentShop(updatedShop);
+      setShops(shops.map(s => s.id === shopId ? updatedShop : s));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update shop';
       setError(errorMessage);
-      console.error('Error updating shop:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -96,14 +133,12 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      await shopsService.deleteShop(shopId);
-
-      // Clear local state
+      // Remove shop from localStorage (handle separately)
       setCurrentShop(null);
+      setShops(shops.filter(s => s.id !== shopId));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete shop';
       setError(errorMessage);
-      console.error('Error deleting shop:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -111,41 +146,28 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   };
 
   const searchShops = async (searchTerm: string, category?: string): Promise<FirebaseShop[]> => {
-    try {
-      setError(null);
-      const results = await shopsService.searchShops(searchTerm, category);
-      return results;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to search shops';
-      setError(errorMessage);
-      console.error('Error searching shops:', err);
-      return [];
-    }
-  };
-
-  const value: ShopContextType = {
-    currentShop,
-    shops,
-    loading,
-    error,
-    createShop,
-    updateShop,
-    deleteShop,
-    loadUserShop,
-    searchShops
+    return shops.filter(shop =>
+      (shop.shopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       shop.shopDescription.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (!category || shop.category === category)
+    );
   };
 
   return (
-    <ShopContext.Provider value={value}>
+    <ShopContext.Provider
+      value={{
+        currentShop,
+        shops,
+        loading,
+        error,
+        createShop,
+        updateShop,
+        deleteShop,
+        loadUserShop,
+        searchShops,
+      }}
+    >
       {children}
     </ShopContext.Provider>
   );
-}
-
-export function useShop(): ShopContextType {
-  const context = useContext(ShopContext);
-  if (context === undefined) {
-    throw new Error('useShop must be used within a ShopProvider');
-  }
-  return context;
 }

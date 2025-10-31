@@ -1,20 +1,24 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { localStorageService } from '../services/localStorageService';
 import { useAuth } from './AuthContext';
-import { favoritesService, listingsService, type FirebaseFavorite, type FirebaseListing } from '../services/firebase';
+import type { Listing } from './ListingsContext';
 
-interface FavoriteWithListing extends FirebaseFavorite {
-  listing?: FirebaseListing;
+export interface FavoriteWithListing {
+  id?: string;
+  userId: string;
+  listingId: string;
+  createdAt: Date;
+  listing?: Listing;
 }
 
 interface FavoritesContextType {
   favorites: FavoriteWithListing[];
   loading: boolean;
-  addFavorite: (listingId: string) => Promise<void>;
-  removeFavorite: (listingId: string) => Promise<void>;
   isFavorited: (listingId: string) => boolean;
   toggleFavorite: (listingId: string) => Promise<void>;
-  refreshFavorites: () => Promise<void>;
+  addFavorite: (listingId: string) => Promise<void>;
+  removeFavorite: (listingId: string) => Promise<void>;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | null>(null);
@@ -36,115 +40,80 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
 
-  // Load user's favorites
+  // Load favorites from localStorage
   useEffect(() => {
-    if (currentUser) {
-      loadFavorites();
-    } else {
+    localStorageService.initialize();
+    if (!currentUser) {
       setFavorites([]);
       setLoading(false);
+      return;
     }
-  }, [currentUser]);
-
-  const loadFavorites = async () => {
-    if (!currentUser) return;
 
     try {
-      setLoading(true);
-      const userFavorites = await favoritesService.getUserFavorites(currentUser.uid);
+      const userFavorites = localStorageService.getFavoritesByUserId(currentUser.id);
+      const listings = localStorageService.getListings();
 
-      // Load listing details for each favorite
-      const favoritesWithListings = await Promise.all(
-        userFavorites.map(async (favorite) => {
-          try {
-            const listing = await listingsService.getListingById(favorite.listingId);
-            return {
-              ...favorite,
-              listing
-            };
-          } catch (error) {
-            console.error(`Error loading listing ${favorite.listingId}:`, error);
-            return {
-              ...favorite,
-              listing: null
-            };
-          }
-        })
-      );
+      // Enrich favorites with listing data
+      const favoritesWithListings = userFavorites.map(fav => ({
+        ...fav,
+        listing: listings.find(l => l.id === fav.listingId),
+      }));
 
-      // Filter out favorites with missing listings
-      const validFavorites = favoritesWithListings.filter(fav => fav.listing !== null);
-      setFavorites(validFavorites);
+      setFavorites(favoritesWithListings);
     } catch (error) {
       console.error('Error loading favorites:', error);
     } finally {
       setLoading(false);
     }
+  }, [currentUser]);
+
+  const isFavorited = (listingId: string): boolean => {
+    return favorites.some(f => f.listingId === listingId);
   };
 
   const addFavorite = async (listingId: string) => {
     if (!currentUser) {
-      alert('Please sign in to add favorites');
-      return;
+      throw new Error('User must be authenticated');
     }
 
     try {
-      await favoritesService.addFavorite(currentUser.uid, listingId);
-      await loadFavorites(); // Refresh the list
+      const favorite = {
+        id: localStorageService.generateId(),
+        userId: currentUser.id,
+        listingId,
+        createdAt: new Date(),
+      };
+
+      localStorageService.saveFavorite(favorite);
+
+      const listing = localStorageService.getListingById(listingId);
+      setFavorites([...favorites, { ...favorite, listing }]);
     } catch (error) {
       console.error('Error adding favorite:', error);
-      alert('Failed to add to favorites. Please try again.');
       throw error;
     }
   };
 
   const removeFavorite = async (listingId: string) => {
     if (!currentUser) {
-      alert('Please sign in to manage favorites');
-      return;
+      throw new Error('User must be authenticated');
     }
 
     try {
-      await favoritesService.removeFavorite(currentUser.uid, listingId);
-      // Remove from local state immediately for responsive UI
-      setFavorites(prev => prev.filter(fav => fav.listingId !== listingId));
+      localStorageService.removeFavorite(currentUser.id, listingId);
+      setFavorites(favorites.filter(f => f.listingId !== listingId));
     } catch (error) {
       console.error('Error removing favorite:', error);
-      alert('Failed to remove from favorites. Please try again.');
       throw error;
     }
   };
 
-  const isFavorited = (listingId: string): boolean => {
-    return favorites.some(fav => fav.listingId === listingId);
-  };
-
   const toggleFavorite = async (listingId: string) => {
-    if (!currentUser) {
-      alert('Please sign in to add favorites');
-      return;
+    if (isFavorited(listingId)) {
+      await removeFavorite(listingId);
+    } else {
+      await addFavorite(listingId);
     }
-
-    console.log('[FavoritesContext] Toggling favorite for listing:', listingId);
-    console.log('[FavoritesContext] Currently favorited:', isFavorited(listingId));
-
-    try {
-      if (isFavorited(listingId)) {
-        console.log('[FavoritesContext] Removing from favorites...');
-        await removeFavorite(listingId);
-        console.log('[FavoritesContext] Successfully removed from favorites');
-      } else {
-        console.log('[FavoritesContext] Adding to favorites...');
-        await addFavorite(listingId);
-        console.log('[FavoritesContext] Successfully added to favorites');
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-    }
-  };
-
-  const refreshFavorites = async () => {
-    await loadFavorites();
   };
 
   return (
@@ -152,11 +121,10 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
       value={{
         favorites,
         loading,
-        addFavorite,
-        removeFavorite,
         isFavorited,
         toggleFavorite,
-        refreshFavorites
+        addFavorite,
+        removeFavorite,
       }}
     >
       {children}

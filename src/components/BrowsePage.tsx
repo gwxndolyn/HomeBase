@@ -10,7 +10,7 @@ import { loadGoogleMapsScript } from '../utils/googleMaps';
 import { emailService } from '../services/emailService';
 import LiquidGlassNav from './LiquidGlassNav';
 import Footer from './Footer';
-import { Search, Filter, Star, List, Map as MapIcon, X, TrendingUp, Award, ChevronRight, ChevronDown, CheckCircle2, Calendar, Clock, DollarSign, Eye, Heart } from 'lucide-react';
+import { Search, Filter, Star, List, Map as MapIcon, X, TrendingUp, Award, ChevronRight, ChevronDown, CheckCircle2, Calendar, Clock, DollarSign, Eye, Heart, XCircle } from 'lucide-react';
 
 // Extend Window interface for Google Maps
 declare global {
@@ -1927,7 +1927,7 @@ export default function BrowsePage() {
                   </div>
                 )
               )
-            )}
+            )
             )}
           </div>
         )}

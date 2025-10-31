@@ -1,20 +1,17 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import {
-  type User,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-  sendPasswordResetEmail
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, googleProvider, db } from '../config/firebase';
+import { localStorageService } from '../services/localStorageService';
+
+interface MockUser {
+  id: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  createdAt: Date;
+}
 
 interface AuthContextType {
-  currentUser: User | null;
+  currentUser: MockUser | null;
   loading: boolean;
   signup: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
@@ -38,91 +35,93 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<MockUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Create user profile in Firestore
-  async function createUserProfile(user: User, additionalData?: any) {
-    if (!user) return;
+  // Initialize localStorage on mount
+  useEffect(() => {
+    localStorageService.initialize();
 
-    const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-      const { displayName, email, photoURL } = user;
-      const createdAt = new Date();
-
-      try {
-        await setDoc(userRef, {
-          displayName,
-          email,
-          photoURL,
-          createdAt,
-          ...additionalData
-        });
-      } catch (error) {
-        console.error('Error creating user profile:', error);
-      }
+    // Check if there's a current user in localStorage
+    const savedUser = localStorageService.getCurrentUser();
+    if (savedUser) {
+      setCurrentUser(savedUser);
     }
-
-    return userRef;
-  }
+    setLoading(false);
+  }, []);
 
   // Sign up with email and password
   async function signup(email: string, password: string, firstName: string, lastName: string) {
-    const { user } = await createUserWithEmailAndPassword(auth, email, password);
+    // Check if user already exists
+    const existingUser = localStorageService.getUserByEmail(email);
+    if (existingUser) {
+      throw new Error('Email already in use');
+    }
 
-    // Update display name
-    await updateProfile(user, {
-      displayName: `${firstName} ${lastName}`
-    });
+    // Create new user
+    const newUser: MockUser = {
+      id: localStorageService.generateId(),
+      email,
+      displayName: `${firstName} ${lastName}`,
+      photoURL: '👤',
+      createdAt: new Date(),
+    };
 
-    // Create user profile in Firestore
-    await createUserProfile(user, {
-      firstName,
-      lastName,
-      displayName: `${firstName} ${lastName}`
-    });
+    // Save user to localStorage
+    localStorageService.saveUser(newUser);
+    localStorageService.setCurrentUser(newUser);
+    setCurrentUser(newUser);
   }
 
   // Sign in with email and password
   async function login(email: string, password: string) {
-    await signInWithEmailAndPassword(auth, email, password);
+    const user = localStorageService.getUserByEmail(email);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // In mock mode, we just verify the email exists
+    // (password validation skipped for demo purposes)
+    localStorageService.setCurrentUser(user);
+    setCurrentUser(user);
   }
 
-  // Sign in with Google
+  // Sign in with Google (mock)
   async function loginWithGoogle() {
-    const { user } = await signInWithPopup(auth, googleProvider);
-    await createUserProfile(user);
-  }
+    // Use a mock Google account for demo
+    let user = localStorageService.getUserByEmail('google@example.com');
 
+    if (!user) {
+      user = {
+        id: localStorageService.generateId(),
+        email: 'google@example.com',
+        displayName: 'Google User',
+        photoURL: '🔐',
+        createdAt: new Date(),
+      };
+      localStorageService.saveUser(user);
+    }
+
+    localStorageService.setCurrentUser(user);
+    setCurrentUser(user);
+  }
 
   // Sign out
-  function logout() {
-    return signOut(auth);
+  async function logout() {
+    localStorageService.setCurrentUser(null);
+    setCurrentUser(null);
   }
 
-  // Reset password
-  function resetPassword(email: string) {
-    return sendPasswordResetEmail(auth, email);
+  // Reset password (mock)
+  async function resetPassword(email: string) {
+    const user = localStorageService.getUserByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    // In mock mode, just log a message
+    console.log(`Password reset email sent to ${email}`);
   }
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      try {
-        if (user) {
-          await createUserProfile(user);
-        }
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Auth state change error:', error);
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    return unsubscribe;
-  }, []);
 
   const value: AuthContextType = {
     currentUser,
