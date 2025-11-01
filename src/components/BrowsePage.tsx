@@ -211,14 +211,14 @@ export default function BrowsePage() {
       .slice(0, 6);
   })();
 
-  // Featured categories with tool counts
+  // Featured categories with product counts
   const featuredCategories = [
-    { name: 'Power Tools', emoji: '🔨', count: allTools.filter(t => t.category === 'Power Tools').length },
-    { name: 'Electronics', emoji: '📱', count: allTools.filter(t => t.category === 'Electronics').length },
-    { name: 'Garden Tools', emoji: '🌱', count: allTools.filter(t => t.category === 'Garden Tools').length },
-    { name: 'Kitchen Appliances', emoji: '🍳', count: allTools.filter(t => t.category === 'Kitchen Appliances').length },
-    { name: 'Sports Equipment', emoji: '🎾', count: allTools.filter(t => t.category === 'Sports Equipment').length },
-    { name: 'Home & DIY', emoji: '🔧', count: allTools.filter(t => t.category === 'Home & DIY').length }
+    { name: 'Handmade Crafts & Artwork', emoji: '🎨', count: allTools.filter(t => t.category === 'Handmade Crafts & Artwork').length },
+    { name: 'Baked Goods & Desserts', emoji: '🍰', count: allTools.filter(t => t.category === 'Baked Goods & Desserts').length },
+    { name: 'Beauty & Personal Care', emoji: '💅', count: allTools.filter(t => t.category === 'Beauty & Personal Care').length },
+    { name: 'Photography & Videography Services', emoji: '📸', count: allTools.filter(t => t.category === 'Photography & Videography Services').length },
+    { name: 'Health & Wellness', emoji: '🌿', count: allTools.filter(t => t.category === 'Health & Wellness').length },
+    { name: 'Consulting & Coaching', emoji: '🎓', count: allTools.filter(t => t.category === 'Consulting & Coaching').length }
   ];
 
   const searchSuggestions = searchTerm.length > 0
@@ -631,60 +631,152 @@ export default function BrowsePage() {
         ]
       });
 
-      // Add markers for filtered tools (respects current filters and categories)
-      const toolsToShow = searchSubmitted || selectedCategory !== 'All' ? filteredTools : filteredTools;
+      // Add markers based on browse mode
+      if (browseMode === 'shops') {
+        // Show shops on map
+        console.log('Browse mode is shops, shops data:', shops);
+        const shopsWithCoordinates = (shops || []).filter((shop: any) => {
+          const hasCoords = shop.coordinates && typeof shop.coordinates.lat === 'number' && typeof shop.coordinates.lng === 'number';
+          if (!hasCoords) {
+            console.log('Shop missing coordinates:', shop.id, shop.shopName);
+          }
+          return hasCoords;
+        });
 
-      // Filter out tools without valid coordinates
-      const toolsWithCoordinates = toolsToShow.filter(tool =>
-        tool.coordinates &&
-        typeof tool.coordinates.lat === 'number' &&
-        typeof tool.coordinates.lng === 'number'
-      );
+        console.log('Shops data available:', shops?.length, 'Shops with valid coordinates:', shopsWithCoordinates.length);
+        shopsWithCoordinates.forEach(shop => {
+          console.log('Adding shop marker:', shop.shopName, shop.coordinates);
+        });
 
-      console.log('Tools with coordinates for main map:', toolsWithCoordinates.length, 'out of', toolsToShow.length);
+        shopsWithCoordinates.forEach((shop: any) => {
+          // Create shop marker icon
+          const markerIcon = {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+              <svg width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 0C13.507 0 5 8.507 5 19C5 33.25 24 64 24 64S43 33.25 43 19C43 8.507 34.493 0 24 0Z" fill="#EC4899"/>
+                <circle cx="24" cy="22" r="18" fill="white"/>
+                <text x="24" y="28" text-anchor="middle" font-size="20" fill="#EC4899">🏪</text>
+              </svg>
+            `),
+            scaledSize: new window.google.maps.Size(48, 64),
+            anchor: new window.google.maps.Point(24, 64),
+          };
 
-      // Set up global function for info window clicks
-      window.viewListing = (toolId: string | number) => {
-        console.log('viewListing called with:', toolId, 'Type:', typeof toolId);
-        const tool = filteredTools.find(t => String(t.id) === String(toolId));
-        console.log('Found tool:', tool);
-        if (tool) {
-          handleCardClick(tool);
-        } else {
-          console.error('Tool not found for ID:', toolId);
-        }
-      };
+          const marker = new window.google.maps.Marker({
+            position: shop.coordinates,
+            map: map,
+            title: shop.shopName,
+            icon: markerIcon
+          });
 
-      toolsWithCoordinates.forEach((tool) => {
-        // Create custom marker icon with image
-        const markerIcon = tool.image && tool.image.startsWith('data:image/')
-          ? {
-              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                <svg width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <clipPath id="pin-clip-main-${tool.id}">
-                      <circle cx="24" cy="22" r="18"/>
-                    </clipPath>
-                  </defs>
-                  <path d="M24 0C13.507 0 5 8.507 5 19C5 33.25 24 64 24 64S43 33.25 43 19C43 8.507 34.493 0 24 0Z" fill="#3B82F6"/>
-                  <circle cx="24" cy="22" r="18" fill="white"/>
-                  <image href="${tool.image}" x="6" y="4" width="36" height="36" clip-path="url(#pin-clip-main-${tool.id})" preserveAspectRatio="xMidYMid slice"/>
-                </svg>
-              `),
-              scaledSize: new window.google.maps.Size(48, 64),
-              anchor: new window.google.maps.Point(24, 64),
+          const infoWindow = new window.google.maps.InfoWindow({
+            disableAutoPan: false,
+            content: `
+              <style>
+                .gm-style-iw-d {
+                  overflow: visible !important;
+                  padding: 0 !important;
+                  max-height: none !important;
+                }
+                .gm-style-iw {
+                  padding: 0 !important;
+                  background: transparent !important;
+                  max-height: none !important;
+                }
+                .gm-style-iw-c {
+                  padding: 0 !important;
+                  background: transparent !important;
+                  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+                  max-height: none !important;
+                }
+                .gm-style-iw-tc {
+                  display: none !important;
+                }
+                .gm-ui-hover-effect {
+                  display: none !important;
+                }
+              </style>
+              <div
+                onclick="window.location.href='/shop-front/${shop.id}'"
+                style="
+                  width: 220px;
+                  cursor: pointer;
+                  border-radius: 12px;
+                  background: rgba(0, 0, 0, 0.75);
+                  backdrop-filter: blur(20px);
+                  -webkit-backdrop-filter: blur(20px);
+                  border: 1px solid rgba(255, 255, 255, 0.1);
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                  transition: all 0.3s;
+                  padding: 12px;
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 40px rgba(0, 0, 0, 0.5)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 32px rgba(0, 0, 0, 0.4)'"
+              >
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                  <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.2);">🏪</div>
+                  <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: #fff; line-height: 1.3; text-shadow: 0 2px 4px rgba(0,0,0,0.3); flex: 1;">${shop.shopName}</h3>
+                </div>
+                <p style="margin: 0 0 6px 0; font-size: 13px; color: rgba(255,255,255,0.9);">${shop.category}</p>
+                <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 6px;">
+                  <span style="color: #FBBF24;">⭐</span>
+                  <span style="font-size: 13px; font-weight: 600; color: #fff;">${shop.rating?.toFixed(1) || 4.5}</span>
+                  <span style="font-size: 11px; color: rgba(255,255,255,0.6);">(${shop.reviews || 0} reviews)</span>
+                </div>
+                <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.8); display: flex; align-items: center; gap: 4px;">
+                  <span>📍</span><span>${shop.location}</span>
+                </p>
+              </div>
+            `
+          });
+
+          marker.addListener('click', () => {
+            if (currentInfoWindowRef.current) {
+              currentInfoWindowRef.current.close();
             }
-          : {
-              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                <svg width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M24 0C13.507 0 5 8.507 5 19C5 33.25 24 64 24 64S43 33.25 43 19C43 8.507 34.493 0 24 0Z" fill="#3B82F6"/>
-                  <circle cx="24" cy="22" r="18" fill="white"/>
-                  <text x="24" y="28" text-anchor="middle" font-size="20" fill="#3B82F6">${getCategoryIcon(tool)}</text>
-                </svg>
-              `),
-              scaledSize: new window.google.maps.Size(48, 64),
-              anchor: new window.google.maps.Point(24, 64),
-            };
+            infoWindow.open(map, marker);
+            currentInfoWindowRef.current = infoWindow;
+          });
+        });
+      } else {
+        // Show products on map
+        const toolsToShow = searchSubmitted || selectedCategory !== 'All' ? filteredTools : filteredTools;
+
+        // Filter out tools without valid coordinates
+        const toolsWithCoordinates = toolsToShow.filter(tool =>
+          tool.coordinates &&
+          typeof tool.coordinates.lat === 'number' &&
+          typeof tool.coordinates.lng === 'number'
+        );
+
+        console.log('Tools with coordinates for main map:', toolsWithCoordinates.length, 'out of', toolsToShow.length);
+
+        // Set up global function for info window clicks
+        window.viewListing = (toolId: string | number) => {
+          console.log('viewListing called with:', toolId, 'Type:', typeof toolId);
+          const tool = filteredTools.find(t => String(t.id) === String(toolId));
+          console.log('Found tool:', tool);
+          if (tool) {
+            handleCardClick(tool);
+          } else {
+            console.error('Tool not found for ID:', toolId);
+          }
+        };
+
+        toolsWithCoordinates.forEach((tool) => {
+        // Create custom marker icon with category emoji
+        const categoryEmoji = getCategoryIcon(tool);
+        const markerIcon = {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 0C13.507 0 5 8.507 5 19C5 33.25 24 64 24 64S43 33.25 43 19C43 8.507 34.493 0 24 0Z" fill="#3B82F6"/>
+              <circle cx="24" cy="22" r="18" fill="white"/>
+              <text x="24" y="28" text-anchor="middle" font-size="20" fill="#3B82F6">${categoryEmoji}</text>
+            </svg>
+          `),
+          scaledSize: new window.google.maps.Size(48, 64),
+          anchor: new window.google.maps.Point(24, 64),
+        };
 
         const marker = new window.google.maps.Marker({
           position: tool.coordinates,
@@ -770,7 +862,8 @@ export default function BrowsePage() {
           infoWindow.open(map, marker);
           currentInfoWindowRef.current = infoWindow;
         });
-      });
+        });
+      }
 
       // Close info window when clicking on the map
       map.addListener('click', () => {
@@ -860,7 +953,7 @@ export default function BrowsePage() {
     };
 
     initializeMainMap();
-  }, [viewMode, userLocation, filteredTools, theme, searchSubmitted, selectedCategory]);
+  }, [viewMode, userLocation, filteredTools, theme, searchSubmitted, selectedCategory, browseMode, shops]);
 
   // Global functions for map info windows
   useEffect(() => {
@@ -1145,7 +1238,7 @@ export default function BrowsePage() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">Browse Tools</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Browse Products</h1>
           <p className={`text-sm md:text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
             Find the perfect tool for your project
           </p>
@@ -1454,10 +1547,10 @@ export default function BrowsePage() {
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-            <div className={`h-80 rounded-2xl overflow-hidden shadow-lg ${
+            <div className={`h-96 rounded-2xl overflow-hidden shadow-lg ${
               theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'
             }`}>
-              <div ref={discoverMapRef} className="w-full h-full" />
+              <div ref={discoverMapRef} className="w-full h-full" style={{ minHeight: '400px' }} />
             </div>
           </div>
         )}
@@ -1816,10 +1909,10 @@ export default function BrowsePage() {
               // PRODUCT BROWSE MODE
               viewMode === 'map' ? (
                 /* Map View - Show map for all states */
-                <div className={`h-96 rounded-xl overflow-hidden ${
+                <div className={`h-screen rounded-xl overflow-hidden ${
                   theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'
                 }`}>
-                  <div ref={mapRef} className="w-full h-full" />
+                  <div ref={mapRef} className="w-full h-full" style={{ minHeight: '600px' }} />
                 </div>
               ) : (
                 /* List View - Show tools only when searched/filtered */
