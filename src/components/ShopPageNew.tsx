@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useShop } from '../contexts/ShopContext';
 import { useListings } from '../contexts/ListingsContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import LiquidGlassNav from './LiquidGlassNav';
 import Footer from './Footer';
 import AnalyticsDashboard from './AnalyticsDashboard';
@@ -16,8 +16,16 @@ export default function ShopPage() {
   const { currentShop, createShop, updateShop } = useShop();
   const { listings, addListing } = useListings();
   const navigate = useNavigate();
+  const { tab } = useParams<{ tab?: string }>();
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'add-listing' | 'settings'>('dashboard');
+
+  // Set active tab from URL parameter
+  useEffect(() => {
+    if (tab && ['dashboard', 'analytics', 'add-listing', 'settings'].includes(tab)) {
+      setActiveTab(tab as 'dashboard' | 'analytics' | 'add-listing' | 'settings');
+    }
+  }, [tab]);
   const [isEditing, setIsEditing] = useState(!currentShop);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });

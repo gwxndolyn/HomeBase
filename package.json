@@ -38,6 +38,7 @@
     "@types/gapi": "^0.0.47",
     "@types/gapi.auth2": "^0.0.61",
     "@types/gapi.client.calendar": "^3.0.12",
+    "@types/google.maps": "^3.58.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/three": "^0.180.0",
