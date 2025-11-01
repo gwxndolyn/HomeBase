@@ -268,73 +268,95 @@ export default function HomePage() {
 
         {/* Featured Products */}
         <section className="mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 px-2">Featured Products & Services</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 px-2">✨ Featured Products & Services</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {listings.slice(0, 8).map((product: any) => (
-              <div
-                key={product.id}
-                onClick={() => navigate(`/listing/${product.id}`)}
-                className={`rounded-lg overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:scale-105 ${
-                  theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'
-                }`}
-              >
-                <div className={`h-40 flex items-center justify-center text-5xl ${
-                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
-                }`}>
-                  {product.imageUrls?.[0] || '📦'}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold mb-2 line-clamp-2">{product.name}</h3>
-                  <p className={`text-sm mb-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    by {product.owner}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-purple-400">${product.price}</span>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs font-semibold">{product.rating}</span>
+            {listings.slice(0, 8).map((product: any) => {
+              const shop = shops.find(s => s.id === product.shopId);
+              return (
+                <div
+                  key={product.id}
+                  onClick={() => navigate(`/listing/${product.id}`)}
+                  className={`rounded-xl overflow-hidden cursor-pointer transition-all hover:shadow-xl hover:scale-105 border ${
+                    theme === 'dark'
+                      ? 'bg-gray-800/60 border-gray-700/50 hover:border-purple-500/50'
+                      : 'bg-white/80 backdrop-blur-sm border-gray-200/50 hover:border-purple-400/50'
+                  }`}
+                >
+                  <div className={`h-40 flex items-center justify-center text-6xl ${
+                    theme === 'dark' ? 'bg-gradient-to-br from-gray-700 to-gray-800' : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                  }`}>
+                    {product.imageUrls?.[0] || '📦'}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold mb-2 line-clamp-2 text-sm">{product.name}</h3>
+                    <p className={`text-xs mb-3 ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} font-medium`}>
+                      {shop?.shopName || product.owner}
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold text-purple-400">${product.price}</span>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          <span className="text-xs font-semibold">{product.rating}</span>
+                        </div>
+                      </div>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                        {product.reviews} reviews • {product.type}
+                      </p>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
         {/* Featured Shops */}
         <section className="mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 px-2">Featured Shops</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 px-2">🏪 Top Rated Shops</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {shops.slice(0, 6).map((shop: any) => (
-              <div
-                key={shop.id}
-                onClick={() => navigate(`/shop-front/${shop.id}`)}
-                className={`rounded-xl overflow-hidden cursor-pointer transition-all hover:shadow-xl hover:scale-105 ${
-                  theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/80 backdrop-blur-sm'
-                }`}
-              >
-                <div className={`h-32 bg-gradient-to-r ${theme === 'dark' ? 'from-purple-600 to-blue-600' : 'from-purple-400 to-blue-500'}`}></div>
-                <div className="p-4">
-                  <h3 className="text-lg font-bold mb-2">{shop.shopName}</h3>
-                  <p className={`text-sm mb-3 line-clamp-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {shop.shopDescription}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-semibold">{shop.rating}</span>
-                    <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      ({shop.reviews})
-                    </span>
+            {shops.slice(0, 6).map((shop: any) => {
+              const shopListings = listings.filter(l => l.shopId === shop.id);
+              return (
+                <div
+                  key={shop.id}
+                  onClick={() => navigate(`/shop-front/${shop.id}`)}
+                  className={`rounded-xl overflow-hidden cursor-pointer transition-all hover:shadow-2xl hover:scale-105 border ${
+                    theme === 'dark'
+                      ? 'bg-gray-800/60 border-gray-700/50 hover:border-purple-500/50'
+                      : 'bg-white/80 backdrop-blur-sm border-gray-200/50 hover:border-purple-400/50'
+                  }`}
+                >
+                  <div className={`h-32 bg-gradient-to-r ${theme === 'dark' ? 'from-purple-600/80 to-blue-600/80' : 'from-purple-400/80 to-blue-500/80'} flex items-center justify-center text-5xl`}>
+                    {shop.shopName.charAt(0)}
                   </div>
-                  {shop.location && (
-                    <p className={`text-xs flex items-center gap-1 mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      <MapPin className="w-3 h-3" />
-                      {shop.location}
+                  <div className="p-5">
+                    <h3 className="text-lg font-bold mb-2">{shop.shopName}</h3>
+                    <p className={`text-sm mb-4 line-clamp-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {shop.shopDescription}
                     </p>
-                  )}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-semibold">{shop.rating}</span>
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                          ({shop.reviews})
+                        </span>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-200/50 text-purple-700'}`}>
+                        {shopListings.length} items
+                      </span>
+                    </div>
+                    {shop.location && (
+                      <p className={`text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <MapPin className="w-3 h-3" />
+                        {shop.location}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </div>
