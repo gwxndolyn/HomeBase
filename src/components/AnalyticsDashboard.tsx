@@ -3,7 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useListings } from '../contexts/ListingsContext';
 import { useRentals } from '../contexts/RentalsContext';
 import { useShop } from '../contexts/ShopContext';
-import { TrendingUp, Lightbulb, DollarSign, Users, Star, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Lightbulb, DollarSign, Users, Star, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 
 interface Recommendation {
@@ -42,6 +42,72 @@ export default function AnalyticsDashboard() {
   const totalRevenue = completedOrders.reduce((sum: number, r: any) => sum + (r.totalCost || 0), 0);
   const avgOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
   const conversionRate = shopOrders.length > 0 ? (completedOrders.length / shopOrders.length) * 100 : 0;
+
+  // Calculate period-based metrics for trend analysis
+  const now = new Date();
+  const getPeriodData = () => {
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    // Current period
+    const currentCompleted = completedOrders.filter((r: any) => {
+      const reqDate = r.requestDate instanceof Date ? r.requestDate : new Date();
+      return selectedPeriod === 'week' ? reqDate >= weekAgo : selectedPeriod === 'month' ? reqDate >= monthAgo : true;
+    });
+    const currentRevenue = currentCompleted.reduce((sum: number, r: any) => sum + (r.totalCost || 0), 0);
+    const currentOrders = currentCompleted.length;
+
+    // Previous period
+    const previousCompleted = completedOrders.filter((r: any) => {
+      const reqDate = r.requestDate instanceof Date ? r.requestDate : new Date();
+      if (selectedPeriod === 'week') {
+        return reqDate >= twoWeeksAgo && reqDate < weekAgo;
+      } else if (selectedPeriod === 'month') {
+        return reqDate >= twoMonthsAgo && reqDate < monthAgo;
+      }
+      return false;
+    });
+    const previousRevenue = previousCompleted.reduce((sum: number, r: any) => sum + (r.totalCost || 0), 0);
+    const previousOrders = previousCompleted.length;
+
+    return {
+      currentRevenue,
+      previousRevenue,
+      currentOrders,
+      previousOrders
+    };
+  };
+
+  const periodData = getPeriodData();
+  const revenueChange = periodData.previousRevenue > 0
+    ? ((periodData.currentRevenue - periodData.previousRevenue) / periodData.previousRevenue) * 100
+    : 100;
+  const ordersChange = periodData.previousOrders > 0
+    ? ((periodData.currentOrders - periodData.previousOrders) / periodData.previousOrders) * 100
+    : 100;
+
+  // Generate revenue chart data
+  const generateChartData = () => {
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dayOrders = completedOrders.filter((r: any) => {
+        const reqDate = r.requestDate instanceof Date ? r.requestDate : new Date();
+        return reqDate.toDateString() === date.toDateString();
+      });
+      const revenue = dayOrders.reduce((sum: number, r: any) => sum + (r.totalCost || 0), 0);
+      data.push({
+        date: date.toLocaleDateString('en-US', { weekday: 'short' }).substring(0, 3),
+        revenue: revenue,
+        orders: dayOrders.length
+      });
+    }
+    return data;
+  };
+
+  const chartData = generateChartData();
 
   // Product analytics
   const avgProductRating = shopListings.length > 0
@@ -150,6 +216,7 @@ export default function AnalyticsDashboard() {
     {
       label: 'Total Revenue',
       value: `$${totalRevenue.toFixed(2)}`,
+      change: revenueChange,
       icon: DollarSign,
       color: 'text-green-500',
       bgColor: 'bg-green-500/10'
@@ -157,6 +224,7 @@ export default function AnalyticsDashboard() {
     {
       label: 'Total Orders',
       value: completedOrders.length.toString(),
+      change: ordersChange,
       icon: Users,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10'
@@ -164,6 +232,7 @@ export default function AnalyticsDashboard() {
     {
       label: 'Conversion Rate',
       value: `${conversionRate.toFixed(1)}%`,
+      change: 0,
       icon: TrendingUp,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10'
@@ -171,6 +240,7 @@ export default function AnalyticsDashboard() {
     {
       label: 'Avg Order Value',
       value: `$${avgOrderValue.toFixed(2)}`,
+      change: 0,
       icon: BarChart3,
       color: 'text-orange-500',
       bgColor: 'bg-orange-500/10'
@@ -208,8 +278,10 @@ export default function AnalyticsDashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {kpis.map((kpi, idx) => {
+        {kpis.map((kpi: any, idx: number) => {
           const Icon = kpi.icon;
+          const isPositive = kpi.change >= 0;
+          const TrendIcon = isPositive ? TrendingUp : TrendingDown;
           return (
             <div
               key={idx}
@@ -223,14 +295,70 @@ export default function AnalyticsDashboard() {
                 <div className={`p-3 rounded-lg ${kpi.bgColor}`}>
                   <Icon className={`w-6 h-6 ${kpi.color}`} />
                 </div>
+                {kpi.change !== 0 && (
+                  <div className={`flex items-center gap-1 px-3 py-1 rounded-lg font-semibold text-sm ${
+                    isPositive
+                      ? 'bg-green-500/20 text-green-500'
+                      : 'bg-red-500/20 text-red-500'
+                  }`}>
+                    <TrendIcon className="w-4 h-4" />
+                    <span>{Math.abs(kpi.change).toFixed(1)}%</span>
+                  </div>
+                )}
               </div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
                 {kpi.label}
               </p>
               <p className="text-3xl font-bold">{kpi.value}</p>
+              {kpi.change !== 0 && (
+                <p className={`text-xs mt-2 ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                  vs previous {selectedPeriod}
+                </p>
+              )}
             </div>
           );
         })}
+      </div>
+
+      {/* Revenue Trend Chart */}
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <BarChart3 className="w-6 h-6 text-blue-500" />
+          7-Day Revenue Trend
+        </h2>
+        <div className={`rounded-lg p-8 ${
+          theme === 'dark'
+            ? 'bg-gray-900 border border-gray-800'
+            : 'bg-white border border-gray-200'
+        }`}>
+          <div className="flex items-end justify-between gap-2 h-64">
+            {chartData.map((day: any, idx: number) => {
+              const maxRevenue = Math.max(...chartData.map((d: any) => d.revenue), 1000);
+              const height = (day.revenue / maxRevenue) * 100;
+              return (
+                <div key={idx} className="flex-1 flex flex-col items-center gap-2 group">
+                  <div className="w-full flex flex-col items-center">
+                    <div className="relative w-full h-48 bg-gradient-to-t from-blue-500/30 to-blue-500/10 rounded-t-lg overflow-hidden flex items-end justify-center group-hover:from-blue-500/50 group-hover:to-blue-500/20 transition-all cursor-pointer">
+                      <div
+                        className="w-4/5 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t transition-all group-hover:shadow-lg"
+                        style={{ height: `${Math.max(height, 5)}%` }}
+                      />
+                    </div>
+                    <div className="mt-3 text-center">
+                      <p className="font-semibold text-sm">{day.date}</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        ${day.revenue.toFixed(0)}
+                      </p>
+                      <p className={`text-xs font-bold text-blue-500`}>
+                        {day.orders} order{day.orders !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Top Products */}

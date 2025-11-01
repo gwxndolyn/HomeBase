@@ -6,8 +6,11 @@ import { useAuth } from './AuthContext';
 export interface ChatMessage {
   id?: string;
   senderId: string;
-  text: string;
-  createdAt: Date;
+  senderName?: string;
+  text?: string;
+  content?: string;
+  createdAt?: Date;
+  timestamp?: Date;
   read?: boolean;
 }
 

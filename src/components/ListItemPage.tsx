@@ -442,8 +442,10 @@ export default function ListItemPage() {
           price: existingListing.price.toString(),
           period: existingListing.period,
           location: existingListing.location,
-          condition: existingListing.condition,
+          condition: existingListing.condition || 'excellent',
           availability: existingListing.availability || '',
+          type: existingListing.type || 'product',
+          stock: existingListing.stock?.toString() || '',
         });
 
         // Set coordinates if available

@@ -112,7 +112,7 @@ export default function ListingDetailPage() {
   // Use only real listings from Firebase
   // Handle both string and number IDs
   const tool = listings.find(t =>
-    t.id === id || t.id === parseInt(id || '0') || String(t.id) === id
+    String(t.id) === String(id) || String(t.id) === id || parseInt(String(t.id)) === parseInt(id || '0')
   );
 
   console.log('ListingDetailPage - ID:', id);
@@ -208,11 +208,11 @@ export default function ListingDetailPage() {
     try {
       setCreatingChat(true);
       console.log('[ListingDetail] Creating chat with owner:', ownerUserId, tool.owner);
-      const chatId = await createOrGetChat(
+      const chat = await createOrGetChat(
         ownerUserId,
-        tool.owner,
-        '' // We don't have the owner's photo URL here
+        tool.owner
       );
+      const chatId = chat.id;
       console.log('[ListingDetail] Chat created/retrieved:', chatId);
       navigate(`/chat?selected=${chatId}`);
     } catch (error) {
@@ -325,7 +325,8 @@ export default function ListingDetailPage() {
       setRentRequest({
         startDateTime: '',
         endDateTime: '',
-        message: ''
+        message: '',
+        quantity: 1
       });
     } catch (error) {
       console.error('Error submitting rental request:', error);

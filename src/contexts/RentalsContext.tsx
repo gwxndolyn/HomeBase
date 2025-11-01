@@ -25,6 +25,7 @@ export interface RentalRequest {
   location: string;
   hasReview?: boolean;
   shopId?: string;
+  category?: string;
 }
 
 interface RentalsContextType {

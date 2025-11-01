@@ -134,9 +134,10 @@ export default function FavoritesPage() {
           </div>
         ) : filteredFavorites.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredFavorites.map((favorite) => {
+            {filteredFavorites.map((favorite: any) => {
               const listing = favorite.listing!;
-              const savedDate = favorite.createdAt?.toDate ? favorite.createdAt.toDate().toLocaleDateString() : 'Unknown';
+              const createdAtDate = favorite.createdAt instanceof Date ? favorite.createdAt : (favorite.createdAt?.toDate ? favorite.createdAt.toDate() : new Date());
+              const savedDate = createdAtDate.toLocaleDateString();
 
               return (
                 <div key={favorite.id} className={`rounded-2xl border-0 shadow-sm hover:shadow-lg transition-all cursor-pointer overflow-hidden group ${

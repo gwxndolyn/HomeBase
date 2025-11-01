@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Product Images for HomeBase -->
+
+<!-- Canvas Art SVG -->
+<svg id="canvas-art" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sunset" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffa500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff1744;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#f5f5f5"/>
+  <rect x="40" y="30" width="320" height="240" fill="white" stroke="#333" stroke-width="3"/>
+  <ellipse cx="200" cy="120" rx="120" ry="60" fill="url(#sunset)"/>
+  <polygon points="200,180 100,220 300,220" fill="#1a1a1a" opacity="0.3"/>
+</svg>
+
+<!-- Wooden Furniture SVG -->
+<svg id="wooden-furniture" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wood" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#654321;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#f0e6d2"/>
+  <!-- Table -->
+  <rect x="80" y="100" width="240" height="20" fill="url(#wood)"/>
+  <!-- Legs -->
+  <rect x="100" y="120" width="15" height="100" fill="#654321"/>
+  <rect x="285" y="120" width="15" height="100" fill="#654321"/>
+  <rect x="180" y="120" width="15" height="100" fill="#654321"/>
+</svg>
+
+<!-- Ceramic Vases SVG -->
+<svg id="ceramic-vases" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="vase1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8d4c0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c9a876;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="vase2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4c0d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a876a8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="vase3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c0d4e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8a8aff;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#f5f5f5"/>
+  <!-- Vase 1 -->
+  <ellipse cx="80" cy="240" rx="35" ry="15" fill="url(#vase1)"/>
+  <path d="M 45 240 Q 45 160 55 140 Q 60 130 80 128 Q 100 130 105 140 Q 115 160 115 240" fill="url(#vase1)" stroke="#999" stroke-width="1"/>
+  <!-- Vase 2 -->
+  <ellipse cx="200" cy="240" rx="40" ry="18" fill="url(#vase2)"/>
+  <path d="M 160 240 Q 160 150 170 120 Q 175 105 200 100 Q 225 105 230 120 Q 240 150 240 240" fill="url(#vase2)" stroke="#999" stroke-width="1"/>
+  <!-- Vase 3 -->
+  <ellipse cx="320" cy="240" rx="35" ry="15" fill="url(#vase3)"/>
+  <path d="M 285 240 Q 285 170 295 145 Q 300 135 320 133 Q 340 135 345 145 Q 355 170 355 240" fill="url(#vase3)" stroke="#999" stroke-width="1"/>
+</svg>
+
+<!-- Chocolate Cake SVG -->
+<svg id="chocolate-cake" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="chocolate" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5C4033;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3E2723;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="frosting" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6B3410;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#fff5e6"/>
+  <!-- Cake Base -->
+  <path d="M 100 200 L 120 100 L 280 100 L 300 200 Z" fill="url(#chocolate)"/>
+  <!-- Frosting -->
+  <path d="M 120 100 Q 200 70 280 100" fill="url(#frosting)" stroke="none"/>
+  <!-- Plate -->
+  <ellipse cx="200" cy="210" rx="110" ry="30" fill="none" stroke="#ddd" stroke-width="3"/>
+  <!-- Decorations -->
+  <circle cx="150" cy="85" r="4" fill="#FF69B4"/>
+  <circle cx="200" cy="75" r="4" fill="#FF69B4"/>
+  <circle cx="250" cy="85" r="4" fill="#FF69B4"/>
+</svg>
+
+<!-- Sourdough Bread SVG -->
+<svg id="sourdough-bread" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bread" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D2691E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B4513;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#f9f5f0"/>
+  <!-- Bread -->
+  <ellipse cx="200" cy="150" rx="100" ry="80" fill="url(#bread)"/>
+  <!-- Score marks -->
+  <path d="M 120 130 Q 200 110 280 130" stroke="#654321" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M 125 160 Q 200 145 275 160" stroke="#654321" stroke-width="2" fill="none" opacity="0.6"/>
+  <!-- Texture -->
+  <circle cx="140" cy="120" r="3" fill="#654321" opacity="0.4"/>
+  <circle cx="200" cy="100" r="3" fill="#654321" opacity="0.4"/>
+  <circle cx="260" cy="125" r="3" fill="#654321" opacity="0.4"/>
+</svg>
+
+<!-- Macaron Box SVG -->
+<svg id="macaron-box" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB6C1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF69B4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#f5f5f5"/>
+  <!-- Box -->
+  <rect x="60" y="60" width="280" height="200" fill="url(#pink)" stroke="#999" stroke-width="2"/>
+  <!-- Lid -->
+  <rect x="70" y="50" width="260" height="15" fill="#FFB6C1" stroke="#999" stroke-width="2"/>
+  <!-- Macarons visible in box -->
+  <circle cx="120" cy="110" r="15" fill="#FFB6C1"/>
+  <circle cx="200" cy="100" r="15" fill="#FFD700"/>
+  <circle cx="280" cy="115" r="15" fill="#87CEEB"/>
+  <circle cx="150" cy="180" r="15" fill="#DDA0DD"/>
+  <circle cx="250" cy="185" r="15" fill="#90EE90"/>
+</svg>
+
+<!-- Camera/Photography SVG -->
+<svg id="camera" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="lens" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#666;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#222;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  <rect width="400" height="300" fill="#f0f0f0"/>
+  <!-- Camera Body -->
+  <rect x="80" y="80" width="240" height="140" rx="10" fill="#1a1a1a" stroke="#333" stroke-width="2"/>
+  <!-- Lens -->
+  <circle cx="200" cy="150" r="50" fill="url(#lens)" stroke="#444" stroke-width="2"/>
+  <!-- Flash -->
+  <rect x="85" y="85" width="20" height="25" fill="#ddd" stroke="#999" stroke-width="1"/>
+  <!-- Details -->
+  <rect x="180" y="90" width="40" height="8" fill="#666"/>
+  <circle cx="95" cy="155" r="4" fill="#ddd"/>
+</svg>
+
+<!-- Portrait Frame SVG -->
+<svg id="portrait" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FDBCB4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F5A892;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#fff"/>
+  <!-- Frame -->
+  <rect x="50" y="30" width="300" height="240" fill="none" stroke="#8B4513" stroke-width="8"/>
+  <rect x="55" y="35" width="290" height="230" fill="none" stroke="#D2691E" stroke-width="2"/>
+  <!-- Portrait -->
+  <circle cx="200" cy="100" r="30" fill="url(#skin)"/>
+  <!-- Eyes -->
+  <circle cx="190" cy="95" r="4" fill="#333"/>
+  <circle cx="210" cy="95" r="4" fill="#333"/>
+  <!-- Smile -->
+  <path d="M 190 105 Q 200 110 210 105" stroke="#333" stroke-width="2" fill="none"/>
+  <!-- Body -->
+  <ellipse cx="200" cy="160" rx="35" ry="45" fill="url(#skin)"/>
+</svg>
+</svg>

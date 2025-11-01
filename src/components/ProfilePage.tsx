@@ -65,7 +65,8 @@ export default function ProfilePage() {
   const userListings = listings.filter(l => l.userId === currentUser?.uid);
   const activeListings = userListings.filter(l => l.isActive !== false);
   const delistedListings = userListings.filter(l => l.isActive === false);
-  const userRentals = currentUser ? getUserRentals(currentUser.email || '') : [];
+  const allRentals = getUserRentals();
+  const userRentals = currentUser ? allRentals.filter(r => r.renterEmail === currentUser.email) : [];
   const completedRentals = userRentals.filter(r => r.status === 'completed');
   const totalEarnings = completedRentals.reduce((sum, r) => sum + r.totalCost, 0);
   const averageRating = userListings.length > 0 ?

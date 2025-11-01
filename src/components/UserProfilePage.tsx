@@ -234,13 +234,12 @@ export default function UserProfilePage() {
     try {
       setCreatingChat(true);
       console.log('[UserProfile] Creating chat with user:', profileUserId, currentUser.name);
-      const chatId = await createOrGetChat(
+      const chat = await createOrGetChat(
         profileUserId,
-        currentUser.name,
-        currentUser.photoURL
+        currentUser.name
       );
-      console.log('[UserProfile] Chat created/retrieved:', chatId);
-      navigate(`/chat?selected=${chatId}`);
+      console.log('[UserProfile] Chat created/retrieved:', chat.id);
+      navigate(`/chat?selected=${chat.id}`);
     } catch (error) {
       console.error('[UserProfile] Error creating chat:', error);
       alert('Failed to create chat. Please try again. Error: ' + (error as Error).message);

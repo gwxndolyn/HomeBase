@@ -865,7 +865,7 @@ export default function BrowsePage() {
   // Global functions for map info windows
   useEffect(() => {
     window.rentTool = (toolId: number) => {
-      const tool = filteredTools.find(t => t.id === toolId);
+      const tool = filteredTools.find(t => String(t.id) === String(toolId));
       if (tool) {
         handleRentClick(tool);
       }

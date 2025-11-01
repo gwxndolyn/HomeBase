@@ -134,7 +134,7 @@ export default function UserSettingsPage() {
     setLoading(true);
     try {
       // Update Firebase Auth profile
-      await updateProfile(currentUser, {
+      await updateProfile(currentUser as any, {
         displayName: settings.displayName,
         photoURL: settings.photoURL
       });
@@ -179,10 +179,10 @@ export default function UserSettingsPage() {
     try {
       // Reauthenticate user
       const credential = EmailAuthProvider.credential(currentUser.email, passwordData.currentPassword);
-      await reauthenticateWithCredential(currentUser, credential);
-      
+      await reauthenticateWithCredential(currentUser as any, credential);
+
       // Update password
-      await updatePassword(currentUser, passwordData.newPassword);
+      await updatePassword(currentUser as any, passwordData.newPassword);
       
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       showMessage('success', 'Password updated successfully!');
@@ -221,7 +221,7 @@ export default function UserSettingsPage() {
           console.log('Image converted to base64');
 
           // Update Firebase Auth profile
-          await updateProfile(currentUser, {
+          await updateProfile(currentUser as any, {
             photoURL: base64String
           });
           console.log('Auth profile updated');
@@ -267,7 +267,7 @@ export default function UserSettingsPage() {
       await deleteDoc(doc(db, 'userSettings', currentUser.uid));
 
       // Delete user account
-      await deleteUser(currentUser);
+      await deleteUser(currentUser as any);
 
       navigate('/');
     } catch (error: any) {

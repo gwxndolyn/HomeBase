@@ -190,15 +190,14 @@ export default function MyRentalsPage() {
 
       // Create or get chat
       console.log('[MyRentals] Creating/getting chat...');
-      const chatId = await createOrGetChat(
+      const chat = await createOrGetChat(
         targetUserId,
-        targetName,
-        targetUserData.photoURL || ''
+        targetName
       );
-      console.log('[MyRentals] Chat created/retrieved:', chatId);
+      console.log('[MyRentals] Chat created/retrieved:', chat.id);
 
       // Navigate to chat with the conversation open
-      navigate(`/chat?selected=${chatId}`);
+      navigate(`/chat?selected=${chat.id}`);
     } catch (error) {
       console.error('[MyRentals] Error creating chat:', error);
       alert('Failed to open chat. Error: ' + (error as Error).message);

@@ -8,7 +8,13 @@ interface MockUser {
   email: string;
   displayName: string;
   photoURL?: string;
+  phoneNumber?: string;
   createdAt: Date;
+  emailVerified?: boolean;
+  metadata?: {
+    creationTime?: string;
+    lastSignInTime?: string;
+  };
 }
 
 // Export for use in components

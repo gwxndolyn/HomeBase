@@ -62,7 +62,7 @@ export default function ShopPage() {
         phone: currentShop.phone || '',
         website: currentShop.website || '',
         instagram: currentShop.instagram || '',
-        operatingHours: currentShop.operatingHours || {
+        operatingHours: (currentShop.operatingHours || {
           monday: { open: '09:00', close: '17:00' },
           tuesday: { open: '09:00', close: '17:00' },
           wednesday: { open: '09:00', close: '17:00' },
@@ -70,7 +70,7 @@ export default function ShopPage() {
           friday: { open: '09:00', close: '17:00' },
           saturday: { open: '10:00', close: '14:00' },
           sunday: { open: '10:00', close: '14:00' }
-        }
+        }) as any
       });
       setIsEditing(false);
     }

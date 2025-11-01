@@ -25,6 +25,8 @@ export interface Listing {
   type?: 'product' | 'service';
   stock?: number;
   shopId?: string;
+  condition?: string;
+  availability?: string;
 }
 
 interface ListingsContextType {

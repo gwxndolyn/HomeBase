@@ -1,0 +1,15 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="alice-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9C27B0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7B1FA2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#alice-gradient)"/>
+  <circle cx="200" cy="80" r="50" fill="white" opacity="0.9"/>
+  <text x="200" y="95" font-size="50" text-anchor="middle" fill="#9C27B0">🎨</text>
+  <text x="200" y="180" font-size="32" text-anchor="middle" fill="white" font-weight="bold">Alice's Crafts</text>
+  <text x="200" y="220" font-size="16" text-anchor="middle" fill="white" opacity="0.8">Handmade Art & Design</text>
+  <rect x="50" y="260" width="300" height="2" fill="white" opacity="0.4"/>
+  <text x="200" y="285" font-size="12" text-anchor="middle" fill="white" opacity="0.6">⭐ 4.8 Rating • 142 Reviews</text>
+</svg>
