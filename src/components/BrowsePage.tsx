@@ -1867,14 +1867,22 @@ export default function BrowsePage() {
                           <div>
                             <h3 className="font-semibold text-lg line-clamp-2">{tool.name}</h3>
                             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                              by <button
+                              from <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate(`/profile/${encodeURIComponent(tool.ownerContact)}`);
+                                  if (tool.shopId) {
+                                    const shop = shops.find(s => s.id === tool.shopId);
+                                    if (shop) {
+                                      navigate(`/shop-front/${tool.shopId}`);
+                                    }
+                                  }
                                 }}
-                                className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors underline"
+                                className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors underline font-medium"
                               >
-                                {tool.owner}
+                                {(() => {
+                                  const shop = shops.find(s => s.id === tool.shopId);
+                                  return shop ? shop.shopName : tool.owner;
+                                })()}
                               </button>
                             </p>
                           </div>
