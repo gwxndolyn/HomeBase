@@ -4,11 +4,15 @@ import { localStorageService } from '../services/localStorageService';
 
 interface MockUser {
   id: string;
+  uid?: string; // Alias for compatibility with Firebase code
   email: string;
   displayName: string;
   photoURL?: string;
   createdAt: Date;
 }
+
+// Export for use in components
+export type { MockUser };
 
 interface AuthContextType {
   currentUser: MockUser | null;
@@ -38,6 +42,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<MockUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Helper to ensure uid is always set
+  const setUserWithUid = (user: MockUser | null) => {
+    if (user) {
+      setCurrentUser({ ...user, uid: user.id });
+    } else {
+      setCurrentUser(null);
+    }
+  };
+
   // Initialize localStorage on mount
   useEffect(() => {
     localStorageService.initialize();
@@ -45,7 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Check if there's a current user in localStorage
     const savedUser = localStorageService.getCurrentUser();
     if (savedUser) {
-      setCurrentUser(savedUser);
+      setUserWithUid(savedUser);
     }
     setLoading(false);
   }, []);
@@ -70,7 +83,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Save user to localStorage
     localStorageService.saveUser(newUser);
     localStorageService.setCurrentUser(newUser);
-    setCurrentUser(newUser);
+    setUserWithUid(newUser);
   }
 
   // Sign in with email and password
@@ -84,7 +97,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // In mock mode, we just verify the email exists
     // (password validation skipped for demo purposes)
     localStorageService.setCurrentUser(user);
-    setCurrentUser(user);
+    setUserWithUid(user);
   }
 
   // Sign in with Google (mock)
@@ -104,7 +117,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     localStorageService.setCurrentUser(user);
-    setCurrentUser(user);
+    setUserWithUid(user);
   }
 
   // Sign out

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, Settings, ChevronDown, Search, Plus, Heart, ShoppingBag, Bell, Sun, Moon, MessageCircle, Menu, X } from 'lucide-react';
+import { User, LogOut, Settings, ChevronDown, Search, Heart, ShoppingBag, Bell, Sun, Moon, MessageCircle, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -88,16 +88,6 @@ const LiquidGlassNav: React.FC = () => {
               }`}>
                 <ShoppingBag className="w-4 h-4" />
                 <span className="text-sm font-medium">My Shop</span>
-              </button>
-              <button
-                onClick={() => handleNavigation('/list-item')}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-xl transition-all ${
-                theme === 'dark'
-                  ? 'text-white/80 hover:text-white hover:bg-white/10'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-black/10'
-              }`}>
-                <Plus className="w-4 h-4" />
-                <span className="text-sm font-medium">List Item</span>
               </button>
               <button
                 onClick={() => handleNavigation('/orders')}
@@ -300,17 +290,6 @@ const LiquidGlassNav: React.FC = () => {
             >
               <ShoppingBag className="w-5 h-5" />
               <span className="font-medium">My Shop</span>
-            </button>
-            <button
-              onClick={() => handleNavigation('/list-item')}
-              className={`flex items-center space-x-3 w-full px-6 py-4 transition-colors ${
-                theme === 'dark'
-                  ? 'text-white/80 hover:text-white hover:bg-white/10'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-black/10'
-              }`}
-            >
-              <Plus className="w-5 h-5" />
-              <span className="font-medium">List Item</span>
             </button>
             <button
               onClick={() => handleNavigation('/orders')}

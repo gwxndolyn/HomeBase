@@ -19,15 +19,21 @@ export interface Chat {
   createdAt: Date;
   updatedAt: Date;
   messages?: ChatMessage[];
+  participantNames?: Record<string, string>;
+  participantPhotos?: Record<string, string>;
+  unreadCount?: Record<string, number>;
 }
 
 interface ChatContextType {
   chats: Chat[];
   loading: boolean;
   getChat: (chatId: string) => Chat | undefined;
+  getMessages: (chatId: string) => ChatMessage[];
   getOrCreateChat: (otherUserId: string, otherUserEmail: string) => Promise<Chat>;
+  createOrGetChat: (otherUserId: string, otherUserEmail: string) => Promise<Chat>;
   sendMessage: (chatId: string, message: string) => Promise<void>;
   markAsRead: (chatId: string) => Promise<void>;
+  markMessagesAsRead: (chatId: string) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
@@ -70,6 +76,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
   const getChat = (chatId: string): Chat | undefined => {
     return chats.find(c => c.id === chatId);
+  };
+
+  const getMessages = (chatId: string): ChatMessage[] => {
+    const chat = getChat(chatId);
+    return chat?.messages || [];
   };
 
   const getOrCreateChat = async (otherUserId: string, otherUserEmail: string): Promise<Chat> => {
@@ -165,15 +176,22 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
   };
 
+  // Alias for compatibility
+  const markMessagesAsRead = markAsRead;
+  const createOrGetChat = getOrCreateChat;
+
   return (
     <ChatContext.Provider
       value={{
         chats,
         loading,
         getChat,
+        getMessages,
         getOrCreateChat,
+        createOrGetChat,
         sendMessage,
         markAsRead,
+        markMessagesAsRead,
       }}
     >
       {children}
