@@ -387,7 +387,11 @@ function CompetitorComparisonModal({ competitor, isOpen, onClose, theme }: Compe
     suggestedActions: string[];
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const comparisonCacheRef = useRef<Map<string, any>>(new Map());
+  const comparisonCacheRef = useRef<Map<string, {
+    strengths: string[];
+    challenges: string[];
+    suggestedActions: string[];
+  }>>(new Map());
 
   useEffect(() => {
     if (!isOpen || !competitor) {
@@ -1491,42 +1495,80 @@ Focus on practical, actionable advice specific to a ${analyticsData.category} bu
                 return (
                   <div
                     key={competitor.id}
-                    className={`group relative p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                    className={`group relative p-4 rounded-xl transition-all duration-300 hover:shadow-lg ${
                       theme === 'dark' ? 'bg-gray-800/80 border border-gray-700/50' : 'bg-gray-50 border border-gray-200'
                     }`}
                     role="article"
-                    aria-label={`Competitor ${competitor.name}, ${distance.toFixed(2)} km away`}
-                    tabIndex={0}
+                    aria-label={`Competitor ${competitor.name}, ${distance.toFixed(2)} km away, rating ${competitor.avgRating}`}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-500/10">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2 flex-1">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-500/10 flex-shrink-0">
                           <span className="text-xs font-bold text-red-500">{competitor.id}</span>
                         </div>
-                        <div>
-                          <h4 className={`font-semibold text-sm ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                        <div className="flex-1 min-w-0">
+                          <h4 className={`font-semibold text-sm ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} truncate`}>
                             {competitor.name}
                           </h4>
-                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
-                            {competitor.specialty}
+                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'} truncate`}>
+                            {competitor.category}
                           </p>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700/30">
-                      <div className="flex items-center gap-1">
-                        <Award className="w-4 h-4 text-yellow-500" />
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                          {competitor.rating}
+
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div className={`text-center p-2 rounded-lg ${
+                        theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'
+                      }`}>
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <Award className="w-3 h-3 text-yellow-500" />
+                          <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                            {competitor.avgRating}
+                          </span>
+                        </div>
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                          Rating
                         </span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4 text-purple-500" />
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                          {distance.toFixed(2)} km
+                      <div className={`text-center p-2 rounded-lg ${
+                        theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'
+                      }`}>
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <MapPin className="w-3 h-3 text-purple-500" />
+                          <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                            {distance.toFixed(1)}
+                          </span>
+                        </div>
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                          km
+                        </span>
+                      </div>
+                      <div className={`text-center p-2 rounded-lg ${
+                        theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'
+                      }`}>
+                        <div className="text-xs font-semibold mb-1" style={{ color: '#10b981' }}>
+                          {competitor.priceRange}
+                        </div>
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                          Price
                         </span>
                       </div>
                     </div>
+
+                    {/* Compare Button */}
+                    <button
+                      onClick={() => handleCompetitorClick(competitor)}
+                      className={`w-full py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                        theme === 'dark'
+                          ? 'bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/30'
+                          : 'bg-purple-100 hover:bg-purple-200 text-purple-700 border border-purple-300'
+                      }`}
+                      aria-label={`Compare ${competitor.name} with your shop`}
+                    >
+                      🔍 Compare with AI
+                    </button>
                   </div>
                 );
               })}
@@ -1686,6 +1728,14 @@ Focus on practical, actionable advice specific to a ${analyticsData.category} bu
           ))}
         </div>
       </div>
+
+      {/* Competitor Comparison Modal - Requires VITE_GEMINI_API_KEY */}
+      <CompetitorComparisonModal
+        competitor={selectedCompetitor}
+        isOpen={isComparisonModalOpen}
+        onClose={handleCloseModal}
+        theme={theme}
+      />
       </div>
     </div>
   );
