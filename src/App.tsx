@@ -58,6 +58,7 @@ export default function App() {
                   <Route path="/profile/:email" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
                   <Route path="/settings" element={<ProtectedRoute><UserSettingsPage /></ProtectedRoute>} />
                   <Route path="/shop" element={<ProtectedRoute><ShopPage /></ProtectedRoute>} />
+                  <Route path="/shop/:tab" element={<ProtectedRoute><ShopPage /></ProtectedRoute>} />
                   <Route path="/shop-front/:shopId" element={<ProtectedRoute><ShopFrontPage /></ProtectedRoute>} />
                   <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
 
