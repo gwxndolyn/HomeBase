@@ -699,7 +699,7 @@ export const mockListings = [
     period: 'unit',
     location: 'Singapore, East Coast',
     coordinates: { lat: 1.3043, lng: 103.9057 },
-    owner: 'Carol Wilson',
+    owner: "Carol's Premium Bakery",
     ownerContact: 'carol@example.com',
     imageUrls: ['/images/macaron-box.svg'],
     type: 'product' as const,

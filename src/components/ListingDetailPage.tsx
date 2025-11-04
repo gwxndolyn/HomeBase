@@ -528,7 +528,7 @@ export default function ListingDetailPage() {
                       onClick={handleRentClick}
                       className="flex-1 bg-purple-900 hover:bg-purple-950 text-white py-3 px-6 rounded-xl font-semibold transition-colors"
                     >
-                      Rent Now
+                      Purchase Item
                     </button>
                   )}
                   <button className={`px-6 py-3 rounded-xl border transition-colors ${

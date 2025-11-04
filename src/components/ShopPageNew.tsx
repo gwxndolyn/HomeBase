@@ -355,27 +355,62 @@ export default function ShopPage() {
               </div>
               {shopListings.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {shopListings.map((listing: any) => (
-                    <div
-                      key={listing.id}
-                      onClick={() => navigate(`/listing/${listing.id}`)}
-                      className={`p-4 rounded-lg cursor-pointer transition-all hover:shadow-lg ${
-                        theme === 'dark' ? 'bg-gray-800' : 'bg-white border border-gray-200'
-                      }`}
-                    >
-                      <div className="text-3xl mb-2">{listing.imageUrls?.[0] || '📦'}</div>
-                      <h3 className="font-bold mb-2">{listing.name}</h3>
-                      <p className="text-sm mb-3 line-clamp-2" style={{ opacity: 0.7 }}>
-                        {listing.description}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-purple-500">${listing.price}</span>
-                        <span className="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-500">
-                          {listing.type}
-                        </span>
+                  {shopListings.map((listing: any) => {
+                    const listingImageMap: Record<string, string> = {
+                      'listing1': '/images/il_570xN.1636384564_othv.webp',
+                      'listing2': '/images/FREYON-S-1-2560x2560-2025-09-29 (1).webp',
+                      'listing3': '/images/shading-with-watercolor-complete-vert-kids-activities-blog-735x1103.webp',
+                      'listing4': '/images/il_fullxfull.1547382512_10kz.webp',
+                      'listing5': '/images/preventivo-ristrutturazione-casa.jpg',
+                      'listing6': '/images/cm-63.webp',
+                      'listing7': '/images/sourdough-bread.svg',
+                      'listing8': '/images/camera.svg',
+                      'listing_alice_1': '/images/il_570xN.1636384564_othv.webp',
+                      'listing_alice_2': '/images/FREYON-S-1-2560x2560-2025-09-29 (1).webp',
+                      'listing_alice_3': '/images/shading-with-watercolor-complete-vert-kids-activities-blog-735x1103.webp',
+                      'listing_alice_4': '/images/wooden-furniture.svg',
+                      'listing_david_1': '/images/il_fullxfull.1547382512_10kz.webp',
+                    };
+                    const imagePath = listingImageMap[listing.id] || listing.imageUrls?.[0] || null;
+
+                    return (
+                      <div
+                        key={listing.id}
+                        onClick={() => navigate(`/listing/${listing.id}`)}
+                        className={`rounded-lg overflow-hidden cursor-pointer transition-all hover:shadow-lg ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-white border border-gray-200'
+                        }`}
+                      >
+                        <div className={`h-40 w-full overflow-hidden ${
+                          theme === 'dark' ? 'bg-gray-900/50' : 'bg-gray-100'
+                        }`}>
+                          {imagePath ? (
+                            <img
+                              src={imagePath}
+                              alt={listing.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-full flex items-center justify-center text-4xl">
+                              {listing.imageUrls?.[0] || '📦'}
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-bold mb-2">{listing.name}</h3>
+                          <p className="text-sm mb-3 line-clamp-2" style={{ opacity: 0.7 }}>
+                            {listing.description}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-purple-500">${listing.price}</span>
+                            <span className="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-500">
+                              {listing.type}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className={`text-center py-8 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
