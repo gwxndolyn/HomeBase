@@ -36,6 +36,8 @@ export default function BrowsePage() {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [searchSubmitted, setSearchSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapsScriptLoaded, setMapsScriptLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [showRentModal, setShowRentModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -59,6 +61,8 @@ export default function BrowsePage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const discoverMapRef = useRef<HTMLDivElement>(null);
+  const discoverMapInstanceRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
   const currentInfoWindowRef = useRef<any>(null);
 
   // Helper function to render tool image (emoji or base64)
@@ -250,6 +254,20 @@ export default function BrowsePage() {
     }
   }, []);
 
+  // Preload Google Maps script on component mount for instant map rendering
+  useEffect(() => {
+    const preloadMaps = async () => {
+      try {
+        await loadGoogleMapsScript();
+        setMapsScriptLoaded(true);
+        console.log('Google Maps script preloaded successfully');
+      } catch (error) {
+        console.error('Failed to preload Google Maps:', error);
+      }
+    };
+    preloadMaps();
+  }, []);
+
   // Initialize Discover Map (only show when not in map view mode)
   useEffect(() => {
     const initializeDiscoverMap = async () => {
@@ -261,70 +279,41 @@ export default function BrowsePage() {
           if (!window.google || !window.google.maps) {
             return;
           }
-      const discoverMap = new window.google.maps.Map(discoverMapRef.current, {
-        center: userLocation,
-        zoom: 14,
-        styles: [
-          // Hide all POI markers (shopping malls, restaurants, etc.)
-          {
-            featureType: 'poi',
-            stylers: [{ visibility: 'off' }]
+
+      // Create map only once
+      let discoverMap = discoverMapInstanceRef.current;
+      if (!discoverMap) {
+        discoverMap = new window.google.maps.Map(discoverMapRef.current, {
+          center: userLocation,
+          zoom: 15,
+          mapTypeId: 'roadmap',
+          disableDefaultUI: true,
+          zoomControl: true,
+          zoomControlOptions: {
+            position: window.google.maps.ControlPosition.RIGHT_CENTER
           },
-          {
-            featureType: 'poi.business',
-            stylers: [{ visibility: 'off' }]
-          },
-          {
-            featureType: 'poi.attraction',
-            stylers: [{ visibility: 'off' }]
-          },
-          {
-            featureType: 'poi.government',
-            stylers: [{ visibility: 'off' }]
-          },
-          {
-            featureType: 'poi.medical',
-            stylers: [{ visibility: 'off' }]
-          },
-          {
-            featureType: 'poi.park',
-            stylers: [{ visibility: 'off' }]
-          },
-          {
-            featureType: 'poi.place_of_worship',
-            stylers: [{ visibility: 'off' }]
-          },
-          {
-            featureType: 'poi.school',
-            stylers: [{ visibility: 'off' }]
-          },
-          {
-            featureType: 'poi.sports_complex',
-            stylers: [{ visibility: 'off' }]
-          },
-          {
-            featureType: 'transit.station',
-            stylers: [{ visibility: 'off' }]
-          },
-          // Dark theme styles when enabled
-          ...(theme === 'dark' ? [
-            { elementType: 'geometry', stylers: [{ color: '#1a1a1a' }] },
-            { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1a1a' }] },
-            { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
-            { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
-            { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
-            { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
-            { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
-            { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
-            { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
-            { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#f3d19c' }] },
-            { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
-            { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
-            { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
-            { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#17263c' }] }
-          ] : [])
-        ]
-      });
+          styles: theme === 'dark' ? [
+            { elementType: 'geometry', stylers: [{ color: '#1a1a2e' }] },
+            { elementType: 'labels.text.fill', stylers: [{ color: '#8b92a8' }] },
+            { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1a2e' }] },
+            {
+              featureType: 'road',
+              elementType: 'geometry',
+              stylers: [{ color: '#2c2c54' }]
+            },
+            {
+              featureType: 'water',
+              elementType: 'geometry',
+              stylers: [{ color: '#0f3460' }]
+            }
+          ] : []
+        });
+        discoverMapInstanceRef.current = discoverMap;
+      }
+
+      // Clear existing markers
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
 
       // Add markers for filtered tools (respects categories and filters)
       // Filter out tools without valid coordinates
@@ -333,8 +322,6 @@ export default function BrowsePage() {
         typeof tool.coordinates.lat === 'number' &&
         typeof tool.coordinates.lng === 'number'
       );
-
-      console.log('Tools with coordinates for discover map:', toolsWithCoordinates.length, 'out of', filteredTools.length);
 
       // Set up global function for info window clicks
       window.viewListing = (toolId: string | number) => {
@@ -349,41 +336,19 @@ export default function BrowsePage() {
       };
 
       toolsWithCoordinates.forEach((tool) => {
-        // Create custom marker icon with image
-        const markerIcon = tool.image && tool.image.startsWith('data:image/')
-          ? {
-              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                <svg width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <clipPath id="pin-clip-${tool.id}">
-                      <circle cx="24" cy="22" r="18"/>
-                    </clipPath>
-                  </defs>
-                  <path d="M24 0C13.507 0 5 8.507 5 19C5 33.25 24 64 24 64S43 33.25 43 19C43 8.507 34.493 0 24 0Z" fill="#3B82F6"/>
-                  <circle cx="24" cy="22" r="18" fill="white"/>
-                  <image href="${tool.image}" x="6" y="4" width="36" height="36" clip-path="url(#pin-clip-${tool.id})" preserveAspectRatio="xMidYMid slice"/>
-                </svg>
-              `),
-              scaledSize: new window.google.maps.Size(48, 64),
-              anchor: new window.google.maps.Point(24, 64),
-            }
-          : {
-              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                <svg width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M24 0C13.507 0 5 8.507 5 19C5 33.25 24 64 24 64S43 33.25 43 19C43 8.507 34.493 0 24 0Z" fill="#3B82F6"/>
-                  <circle cx="24" cy="22" r="18" fill="white"/>
-                  <text x="24" y="28" text-anchor="middle" font-size="20" fill="#3B82F6">${getCategoryIcon(tool)}</text>
-                </svg>
-              `),
-              scaledSize: new window.google.maps.Size(48, 64),
-              anchor: new window.google.maps.Point(24, 64),
-            };
-
+        // Create marker with circle icon like analytics map (red markers for listings)
         const marker = new window.google.maps.Marker({
           position: tool.coordinates,
           map: discoverMap,
           title: tool.name,
-          icon: markerIcon
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 11,
+            fillColor: '#ff375f',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 3
+          }
         });
 
         // Create info window with conditional image display
@@ -463,6 +428,9 @@ export default function BrowsePage() {
           infoWindow.open(discoverMap, marker);
           currentInfoWindowRef.current = infoWindow;
         });
+
+        // Store marker in ref for cleanup
+        markersRef.current.push(marker);
       });
 
       // Close info window when clicking on the map
@@ -473,23 +441,27 @@ export default function BrowsePage() {
         }
       });
 
-      // Add user location marker if available
+      // Add user location marker if available (green circle like analytics map)
       if (userLocation) {
         const userMarker = new window.google.maps.Marker({
           position: userLocation,
           map: discoverMap,
           title: 'Your Location',
           icon: {
-            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-              <svg width="32" height="48" viewBox="0 0 32 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 0C7.16 0 0 7.16 0 16C0 28 16 48 16 48S32 28 32 16C32 7.16 24.84 0 16 0Z" fill="#DC2626"/>
-                <circle cx="16" cy="16" r="8" fill="white"/>
-                <circle cx="16" cy="16" r="4" fill="#DC2626"/>
-              </svg>
-            `),
-            scaledSize: new window.google.maps.Size(32, 48),
-            anchor: new window.google.maps.Point(16, 48),
-          }
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 14,
+            fillColor: '#00ff7f',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 4
+          },
+          label: {
+            text: 'You',
+            color: '#ffffff',
+            fontSize: '11px',
+            fontWeight: 'bold'
+          },
+          zIndex: 1000
         });
 
         // Create simple info window for user location
@@ -545,6 +517,9 @@ export default function BrowsePage() {
           userInfoWindow.open(discoverMap, userMarker);
           currentInfoWindowRef.current = userInfoWindow;
         });
+
+        // Store user marker in ref for cleanup
+        markersRef.current.push(userMarker);
       }
         } catch (error) {
           console.error('Failed to load Google Maps for discover map:', error);
@@ -553,7 +528,16 @@ export default function BrowsePage() {
     };
 
     initializeDiscoverMap();
-  }, [userLocation, theme, searchSubmitted, loading, viewMode, filteredTools]);
+
+    // Cleanup when switching views
+    return () => {
+      if (viewMode === 'map' || searchSubmitted) {
+        // Clear map instance when switching to map view or after search
+        discoverMapInstanceRef.current = null;
+        markersRef.current = [];
+      }
+    };
+  }, [userLocation, searchSubmitted, loading, viewMode, filteredTools]);
 
   // Initialize Google Map (for all views - both before and after search)
   useEffect(() => {

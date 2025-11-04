@@ -15,7 +15,7 @@ const ChatBot: React.FC = () => {
     {
       id: '1',
       type: 'bot',
-      text: 'Welcome to HomeBase Customer Support! 👋 I\'m here to help with rental questions, account issues, booking assistance, and more. How can I assist you today?',
+      text: 'Welcome to HomeBase! 👋 I\'m your personal assistant for discovering amazing home-based businesses in your area. I can help you find local artisans, services, food vendors, and more. What are you looking for today?',
       timestamp: new Date(),
     },
   ]);
@@ -57,11 +57,11 @@ const ChatBot: React.FC = () => {
     setLoading(true);
 
     try {
-      // Get response from Gemini - Customer Service focused
+      // Get response from Gemini - HomeBase business recommendation focused
       const context =
-        'You are a professional customer service representative for HomeBase, a tool rental platform. Your role is to: 1) Help users with rental questions, account issues, and booking assistance. 2) Provide information about listings, pricing, and rental terms. 3) Address technical issues and guide users through platform features. 4) Be friendly, empathetic, and concise in your responses. 5) Always maintain a helpful tone. Do NOT use markdown formatting like **bold**, *italics*, or `code`. Just write plain text.';
+        'You are a helpful AI assistant for HomeBase, a platform connecting customers with local home-based businesses. Your role is to: 1) Recommend home-based businesses based on user needs (baking, crafts, photography, tutoring, pet care, etc.). 2) Suggest specific shops from our platform like "Alice\'s Home Pizza", "Carol\'s Premium Bakery", "David\'s Professional Photography", etc. 3) Help users discover local artisans, food vendors, and service providers. 4) Provide information about product categories, shop locations in Singapore, and business offerings. 5) Be enthusiastic about supporting local home entrepreneurs. 6) Keep responses concise and friendly. Do NOT use markdown formatting like **bold**, *italics*, or `code`. Just write plain text with emojis when appropriate.';
       const response = await generateContent(
-        `${context}\n\nCustomer: ${inputText}`
+        `${context}\n\nUser: ${inputText}`
       );
 
       // Clean markdown formatting from response
@@ -118,10 +118,10 @@ const ChatBot: React.FC = () => {
           >
             <div>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
-                Bob - Customer Support
+                HomeBase Assistant
               </h3>
               <p style={{ margin: '4px 0 0 0', fontSize: '12px', opacity: 0.9 }}>
-                Always here to help
+                Discover local businesses
               </p>
             </div>
             <button

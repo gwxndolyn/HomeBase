@@ -38,32 +38,36 @@ export default function HomePage() {
       id: 1,
       title: `Welcome to HomeBase, ${currentUser?.displayName?.split(' ')[0] || 'User'}!`,
       subtitle: "Start your home business journey",
-      icon: "🏪",
+      icon: '',
       color: "from-indigo-500 to-purple-600",
+      fullBackground: true,
       action: () => navigate('/browse')
     },
     {
       id: 2,
       title: "Launch Your Shop",
       subtitle: "Sell products and services from home",
-      icon: "🛍️",
+      icon: '',
       color: "from-blue-500 to-purple-600",
+      fullBackground: true,
       action: () => navigate('/list-item')
     },
     {
       id: 3,
       title: "Discover Local Businesses",
       subtitle: "Support home entrepreneurs in your area",
-      icon: "🌍",
+      icon: '',
       color: "from-green-500 to-blue-500",
+      fullBackground: true,
       action: () => navigate('/browse')
     },
     {
       id: 4,
       title: "Join the Community",
       subtitle: "Over 1000+ home businesses",
-      icon: "👥",
+      icon: '',
       color: "from-purple-500 to-pink-500",
+      fullBackground: true,
       action: () => navigate('/browse')
     }
   ];
@@ -109,15 +113,38 @@ export default function HomePage() {
             className="flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
-            {banners.map((banner) => (
+            {banners.map((banner) => {
+              // Map banner images to available assets
+              const bannerImageMap: {[key: number]: string} = {
+                1: '/images/welcomeimage.avif',
+                2: '/images/bakingimage.jpg',
+                3: '/images/woman-looking-her-phone-while-it-rains_23-2149260457.jpg',
+                4: '/images/Pat-Bamelach-Photography-Small-56-of-92.jpg',
+              };
+              const bannerImage = bannerImageMap[banner.id];
+              const useFullBackground = Boolean(banner.fullBackground && bannerImage);
+
+              return (
               <div
                 key={banner.id}
-                className={`w-full flex-shrink-0 bg-gradient-to-r ${banner.color} p-6 sm:p-12 md:p-20 cursor-pointer min-h-[300px] sm:min-h-[400px] md:min-h-[450px]`}
+                className={`w-full flex-shrink-0 ${useFullBackground ? '' : `bg-gradient-to-r ${banner.color}`} p-6 sm:p-12 md:p-20 cursor-pointer min-h-[300px] sm:min-h-[400px] md:min-h-[450px] relative overflow-hidden`}
                 onClick={banner.action}
               >
-                <div className="flex items-center justify-between h-full">
-                  <div className="text-white z-10 relative">
-                    <div className="text-6xl sm:text-8xl md:text-9xl mb-3 md:mb-6">{banner.icon}</div>
+                {useFullBackground && (
+                  <>
+                    <img
+                      src={bannerImage}
+                      alt="Home business inspiration"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-purple-900/40 to-purple-600/40" />
+                  </>
+                )}
+                <div className="flex items-center justify-between h-full relative z-10">
+                  <div className="text-white z-10 relative max-w-xl">
+                    {banner.icon && (
+                      <div className="text-6xl sm:text-8xl md:text-9xl mb-3 md:mb-6">{banner.icon}</div>
+                    )}
                     <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold mb-2 md:mb-4 leading-tight drop-shadow-lg">{banner.title}</h1>
                     <p className="text-base sm:text-xl md:text-2xl opacity-90 mb-4 md:mb-6 drop-shadow-md">{banner.subtitle}</p>
                     <div className="flex space-x-4">
@@ -126,14 +153,37 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                  <div className="hidden lg:block">
-                    <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
-                      <div className="text-8xl">{banner.icon}</div>
+                  {!useFullBackground && (
+                    <div className="hidden lg:block relative">
+                      {bannerImage ? (
+                        <div className="w-64 h-64 flex items-center justify-center">
+                          <img
+                            src={bannerImage}
+                            alt={banner.title}
+                            className="w-full h-full object-contain drop-shadow-2xl"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-48 h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
+                          <div className="text-8xl">{banner.icon}</div>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
+                {/* Background decoration - floating product images */}
+                {bannerImage && !useFullBackground && (
+                  <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 pointer-events-none hidden md:block">
+                    <img
+                      src={bannerImage}
+                      alt=""
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
               </div>
-            ))}
+            );
+            })}
           </div>
 
           {/* Navigation Buttons */}
@@ -170,18 +220,18 @@ export default function HomePage() {
           <div className="relative">
             <div className="flex overflow-x-auto scrollbar-hide gap-8 pb-6">
               {[
-                { name: 'Handmade Crafts', emoji: '🎨', count: '120+', category: 'Handmade Crafts & Artwork' },
-                { name: 'Baked Goods', emoji: '🍰', count: '85+', category: 'Baked Goods & Desserts' },
-                { name: 'Home Decor', emoji: '🏠', count: '60+', category: 'Home Decor & Furniture' },
-                { name: 'Cleaning Svcs', emoji: '🧹', count: '45+', category: 'Cleaning & Organization Services' },
-                { name: 'Pet Care', emoji: '🐕', count: '70+', category: 'Pet Care Services' },
-                { name: 'Photography', emoji: '📷', count: '35+', category: 'Photography & Videography Services' },
-                { name: 'Music & Audio', emoji: '🎵', count: '28+', category: 'Music & Audio Services' },
-                { name: 'Fitness', emoji: '💪', count: '42+', category: 'Fitness & Training' },
-                { name: 'Beauty Care', emoji: '💄', count: '55+', category: 'Beauty & Personal Care' },
-                { name: 'Coaching', emoji: '🎯', count: '38+', category: 'Consulting & Coaching' },
-                { name: 'Digital Services', emoji: '💻', count: '25+', category: 'Digital Products & Services' },
-                { name: 'Wellness', emoji: '🧘', count: '32+', category: 'Health & Wellness' }
+                { name: 'Handmade Crafts', emoji: '🎨', count: '120+', category: 'Handmade Crafts & Artwork', image: '/images/canvas-art.svg' },
+                { name: 'Baked Goods', emoji: '🍰', count: '85+', category: 'Baked Goods & Desserts', image: '/images/chocolate-cake.svg' },
+                { name: 'Home Decor', emoji: '🏠', count: '60+', category: 'Home Decor & Furniture', image: '/images/wooden-furniture.svg' },
+                { name: 'Cleaning Svcs', emoji: '🧹', count: '45+', category: 'Cleaning & Organization Services', image: null },
+                { name: 'Pet Care', emoji: '🐕', count: '70+', category: 'Pet Care Services', image: null },
+                { name: 'Photography', emoji: '📷', count: '35+', category: 'Photography & Videography Services', image: '/images/camera.svg' },
+                { name: 'Music & Audio', emoji: '🎵', count: '28+', category: 'Music & Audio Services', image: null },
+                { name: 'Fitness', emoji: '💪', count: '42+', category: 'Fitness & Training', image: null },
+                { name: 'Beauty Care', emoji: '💄', count: '55+', category: 'Beauty & Personal Care', image: null },
+                { name: 'Coaching', emoji: '🎯', count: '38+', category: 'Consulting & Coaching', image: null },
+                { name: 'Digital Services', emoji: '💻', count: '25+', category: 'Digital Products & Services', image: null },
+                { name: 'Wellness', emoji: '🧘', count: '32+', category: 'Health & Wellness', image: null }
               ].map((category, index) => {
                 return (
                   <div
@@ -189,10 +239,18 @@ export default function HomePage() {
                     onClick={() => navigate(`/browse?category=${encodeURIComponent(category.category)}`)}
                     className="flex-none cursor-pointer group mt-1 ml-1 mr-1"
                   >
-                    <div className={`w-24 h-24 rounded-full border border-gray-200/40 flex items-center justify-center mb-3 transition-all group-hover:border-gray-300/60 group-hover:shadow-lg group-hover:scale-105 overflow-hidden text-4xl ${
+                    <div className={`w-24 h-24 rounded-full border border-gray-200/40 flex items-center justify-center mb-3 transition-all group-hover:border-gray-300/60 group-hover:shadow-lg group-hover:scale-105 overflow-hidden p-3 ${
                       theme === 'dark' ? 'bg-gray-800/15' : 'bg-gray-100/25'
                     }`}>
-                      {category.emoji}
+                      {category.image ? (
+                        <img
+                          src={category.image}
+                          alt={category.name}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <span className="text-4xl">{category.emoji}</span>
+                      )}
                     </div>
                     <div className="text-center max-w-[96px]">
                       <h3 className="font-medium text-xs mb-1 leading-tight">{category.name}</h3>
@@ -272,6 +330,25 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {listings.slice(0, 8).map((product: any) => {
               const shop = shops.find(s => s.id === product.shopId);
+
+              const productImageMap: {[key: string]: string} = {
+                'listing1': '/images/il_570xN.1636384564_othv.webp',
+                'listing2': '/images/FREYON-S-1-2560x2560-2025-09-29 (1).webp',
+                'listing3': '/images/shading-with-watercolor-complete-vert-kids-activities-blog-735x1103.webp',
+                'listing4': '/images/il_fullxfull.1547382512_10kz.webp',
+                'listing5': '/images/preventivo-ristrutturazione-casa.jpg',
+                'listing6': '/images/cm-63.webp',
+                'listing7': '/images/sourdough-bread.svg',
+                'listing8': '/images/camera.svg',
+                'listing_alice_1': '/images/il_570xN.1636384564_othv.webp',
+                'listing_alice_2': '/images/FREYON-S-1-2560x2560-2025-09-29 (1).webp',
+                'listing_alice_3': '/images/shading-with-watercolor-complete-vert-kids-activities-blog-735x1103.webp',
+                'listing_alice_4': '/images/wooden-furniture.svg',
+                'listing_david_1': '/images/il_fullxfull.1547382512_10kz.webp',
+              };
+
+              const imagePath = productImageMap[product.id] || null;
+
               return (
                 <div
                   key={product.id}
@@ -282,10 +359,20 @@ export default function HomePage() {
                       : 'bg-white/80 backdrop-blur-sm border-gray-200/50 hover:border-purple-400/50'
                   }`}
                 >
-                  <div className={`h-40 flex items-center justify-center text-6xl ${
-                    theme === 'dark' ? 'bg-gradient-to-br from-gray-700 to-gray-800' : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                  <div className={`h-44 w-full overflow-hidden ${
+                    theme === 'dark' ? 'bg-gray-900/50' : 'bg-gray-100'
                   }`}>
-                    {product.imageUrls?.[0] || '📦'}
+                    {imagePath ? (
+                      <img
+                        src={imagePath}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-6xl">
+                        {product.imageUrls?.[0] || '📦'}
+                      </div>
+                    )}
                   </div>
                   <div className="p-4">
                     <h3 className="font-bold mb-2 line-clamp-2 text-sm">{product.name}</h3>
